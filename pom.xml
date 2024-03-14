@@ -66,16 +66,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.xmlunit</groupId>
-        <artifactId>xmlunit-core</artifactId>
-        <version>2.0.0</version>
-        <scope>test</scope>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-core</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.xmlunit</groupId>
-        <artifactId>xmlunit-matchers</artifactId>
-        <version>2.0.0</version>
-        <scope>test</scope>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-matchers</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -237,7 +237,7 @@
       </plugin>
     </plugins>
   </build>
-    <profiles>
+  <profiles>
     <profile>
       <id>publish-maven-central</id>
       <build>
