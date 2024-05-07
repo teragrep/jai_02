@@ -46,7 +46,9 @@
 package com.teragrep.jai_02.keystore;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Objects;
 
 public class Salt {
     private final byte[] salt;
@@ -62,8 +64,28 @@ public class Salt {
         return Base64.getEncoder().encode(salt);
     }
 
+    byte[] asBytes() {
+        return salt;
+    }
+
     @Override
     public String toString() {
         return new String(asBase64(), StandardCharsets.US_ASCII);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Salt other = (Salt) o;
+        return Arrays.equals(salt, other.asBytes());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(salt);
+    }
+
 }

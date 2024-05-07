@@ -45,29 +45,51 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.util.regex.Pattern;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class Split {
+import java.util.Base64;
 
-    private final char splitChar;
-    private final Pattern pattern;
+public class SaltTest {
 
-    public Split(char splitChar) {
-        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
+    @Test
+    public void testSaltDefaultLength() {
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+        Assertions.assertEquals(20, salt.asBytes().length);
     }
 
-    public Split(char splitChar, Pattern pattern) {
-        this.splitChar = splitChar;
-        this.pattern = pattern;
+    @Test
+    public void testSaltCustomLength() {
+        SaltFactory saltFactory = new SaltFactory(42);
+        Salt salt = saltFactory.createSalt();
+        Assertions.assertEquals(42, salt.asBytes().length);
     }
 
-    @Override
-    public String toString() {
-        return Character.toString(splitChar);
+    @Test
+    public void testSaltBase64() {
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+        byte[] saltDecoded = Base64.getDecoder().decode(salt.asBase64());
+        Assertions.assertArrayEquals(salt.asBytes(), saltDecoded);
     }
 
-    Pattern asPattern() {
-        return pattern;
+    @Test
+    public void testSaltBase64String() {
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+        String saltString = salt.toString();
+
+        Salt other = new Salt(saltString);
+
+        Assertions.assertEquals(salt, other);
     }
 
+    @Test
+    public void testSaltNotEqual() {
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+        Salt other = saltFactory.createSalt();
+        Assertions.assertNotEquals(salt, other);
+    }
 }

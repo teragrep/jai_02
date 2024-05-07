@@ -45,29 +45,23 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.util.regex.Pattern;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class Split {
+public class UserNameTest {
 
-    private final char splitChar;
-    private final Pattern pattern;
-
-    public Split(char splitChar) {
-        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
+    @Test
+    public void testValidUserName() {
+        Split split = new Split(':');
+        UserNameImpl userName = new UserNameImpl("foosh", split);
+        UserNameValid userNameValid = userName.asValid();
+        Assertions.assertEquals("foosh", userNameValid.userName());
     }
 
-    public Split(char splitChar, Pattern pattern) {
-        this.splitChar = splitChar;
-        this.pattern = pattern;
+    @Test
+    public void testInvalidUserName() {
+        Split split = new Split(':');
+        UserNameImpl userName = new UserNameImpl("ba:sh", split);
+        Assertions.assertThrows(IllegalArgumentException.class, userName::asValid);
     }
-
-    @Override
-    public String toString() {
-        return Character.toString(splitChar);
-    }
-
-    Pattern asPattern() {
-        return pattern;
-    }
-
 }

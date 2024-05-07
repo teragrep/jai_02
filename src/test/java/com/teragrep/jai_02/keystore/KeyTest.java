@@ -45,29 +45,22 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
 
-public class Split {
+public class KeyTest {
 
-    private final char splitChar;
-    private final Pattern pattern;
-
-    public Split(char splitChar) {
-        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
+    @Test
+    public void testKey () {
+        Key key = new Key(null, null, 0, null);
     }
 
-    public Split(char splitChar, Pattern pattern) {
-        this.splitChar = splitChar;
-        this.pattern = pattern;
+
+    /*
+    @Test
+    public void testKeyString() {
+        String alias = "user:"
+        KeyString keyString = new KeyString()
     }
 
-    @Override
-    public String toString() {
-        return Character.toString(splitChar);
-    }
-
-    Pattern asPattern() {
-        return pattern;
-    }
-
+     */
 }

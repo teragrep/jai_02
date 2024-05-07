@@ -45,29 +45,28 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.util.regex.Pattern;
 
-public class Split {
+public class SplitTest {
 
-    private final char splitChar;
-    private final Pattern pattern;
+    @Test
+    public void testSplit() {
+        Split split = new Split(':');
+        Assertions.assertEquals(":", split.toString());
 
-    public Split(char splitChar) {
-        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
+        Pattern pattern = Pattern.compile(Pattern.quote(":"));
+        Assertions.assertEquals(pattern.pattern(), split.asPattern().pattern());
     }
 
-    public Split(char splitChar, Pattern pattern) {
-        this.splitChar = splitChar;
-        this.pattern = pattern;
-    }
+       @Test
+    public void testSplitQuote() {
+        Split split = new Split('.');
+        Assertions.assertEquals(".", split.toString());
 
-    @Override
-    public String toString() {
-        return Character.toString(splitChar);
+        Pattern quotedPattern = Pattern.compile(Pattern.quote("."));
+        Assertions.assertEquals(quotedPattern.pattern(), split.asPattern().pattern());
     }
-
-    Pattern asPattern() {
-        return pattern;
-    }
-
 }
