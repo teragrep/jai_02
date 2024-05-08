@@ -45,6 +45,8 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import java.util.Objects;
+
 public class UserNameImpl implements UserName {
 
     public final String username;
@@ -64,6 +66,21 @@ public class UserNameImpl implements UserName {
     @Override
     public String userName() {
         return username;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserNameImpl userName = (UserNameImpl) o;
+        return Objects.equals(username, userName.username) && Objects.equals(split, userName.split);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, split);
     }
 
 }

@@ -45,22 +45,30 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class KeyTest {
 
     @Test
     public void testKey () {
-        Key key = new Key(null, null, 0, null);
+        String name = "userish";
+
+        Split split = new Split(':');
+
+        UserNameImpl username = new UserNameImpl(name, split);
+        UserNameValid userNameValid = username.asValid();
+
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+
+        int iterationCount = 100000;
+
+        Key key = new Key(userNameValid, salt, iterationCount, split);
+
+        KeyString keyString = new KeyString(key.toString(), split);
+        Key other = keyString.toKey();
+
+        Assertions.assertEquals(key, other);
     }
-
-
-    /*
-    @Test
-    public void testKeyString() {
-        String alias = "user:"
-        KeyString keyString = new KeyString()
-    }
-
-     */
 }

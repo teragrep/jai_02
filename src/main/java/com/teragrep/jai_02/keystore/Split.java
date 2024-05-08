@@ -45,6 +45,7 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Split {
@@ -68,6 +69,25 @@ public class Split {
 
     Pattern asPattern() {
         return pattern;
+    }
+
+    char splitChar() {
+        return splitChar;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Split split = (Split) o;
+        return splitChar == split.splitChar() && Objects.equals(pattern.pattern(), split.pattern.pattern());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(splitChar, pattern.pattern());
     }
 
 }

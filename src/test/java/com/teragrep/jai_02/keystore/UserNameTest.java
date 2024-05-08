@@ -64,4 +64,20 @@ public class UserNameTest {
         UserNameImpl userName = new UserNameImpl("ba:sh", split);
         Assertions.assertThrows(IllegalArgumentException.class, userName::asValid);
     }
+
+    @Test
+    public void testUserNameImplEquality() {
+        Split split = new Split(':');
+        UserNameImpl userName = new UserNameImpl("foosh", split);
+        UserNameImpl other = new UserNameImpl("foosh", split);
+        Assertions.assertEquals(userName,other);
+    }
+
+    @Test
+    public void testUserNameValidEqulity() {
+        Split split = new Split(':');
+        UserNameImpl userName = new UserNameImpl("bash", split);
+        UserNameImpl otherUserName = new UserNameImpl("bash", split);
+        Assertions.assertEquals(userName.asValid(),  otherUserName.asValid());
+    }
 }

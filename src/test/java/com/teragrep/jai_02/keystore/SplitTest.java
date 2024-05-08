@@ -61,12 +61,19 @@ public class SplitTest {
         Assertions.assertEquals(pattern.pattern(), split.asPattern().pattern());
     }
 
-       @Test
+    @Test
     public void testSplitQuote() {
         Split split = new Split('.');
         Assertions.assertEquals(".", split.toString());
 
         Pattern quotedPattern = Pattern.compile(Pattern.quote("."));
         Assertions.assertEquals(quotedPattern.pattern(), split.asPattern().pattern());
+    }
+
+    @Test
+    public void testSplitEquals() {
+        Split split = new Split(':');
+        Split other = new Split(':');
+        Assertions.assertEquals(split, other);
     }
 }
