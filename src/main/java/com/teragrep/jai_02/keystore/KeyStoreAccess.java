@@ -67,7 +67,7 @@ public class KeyStoreAccess {
         this.keyStorePassword = keyStorePassword;
     }
 
-    public SecretKey loadKey(final Key key) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    public SecretKey loadKey(final KeySecret keyWithSecret) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
         final KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword);
 
@@ -76,24 +76,23 @@ public class KeyStoreAccess {
         // TODO 3 create a cache of requests -> success/fail
 
         KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
-        KeyStore.SecretKeyEntry ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(key.toString(), passwordProtection);
-
-        return new SecretKeySpec(ske.getSecretKey().getEncoded(), ske.getSecretKey().getAlgorithm());
+        KeyStore.SecretKeyEntry ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyWithSecret.asKey().toString(), passwordProtection);
+        return new SecretKeySpec(ske.getSecretKey().getEncoded(), keyWithSecret.keyAlgorithm());
     }
 
-    public void saveKey(final Key key, final char[] pw) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public void saveKey(final KeySecret keyWithSecret, final char[] pw) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         final KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
 
         KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
-        keyStore.setEntry(key.toString(), new KeyStore.SecretKeyEntry(new KeySecret(key).get(pw)), passwordProtection);
+        keyStore.setEntry(keyWithSecret.asKey().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.asSecretKey(pw)), passwordProtection);
 
         keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
     }
 
-    public boolean verifyKey(final Key key, final char[] pw) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        final SecretKey storedKey = loadKey(key);
-        final SecretKey newKey = new KeySecret(key).get(pw);
+    public boolean verifyKey(final KeySecret keyWithSecret, final char[] pw) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        final SecretKey storedKey = loadKey(keyWithSecret);
+        final SecretKey newKey = keyWithSecret.asSecretKey(pw);
 
         System.out.println("stored = " + Arrays.toString(storedKey.getEncoded()) + " " + storedKey.getAlgorithm() + " " + storedKey.getFormat());
         System.out.println("new = " + Arrays.toString(newKey.getEncoded()) + " " + newKey.getAlgorithm() + " " + newKey.getFormat());

@@ -69,16 +69,18 @@ public class KeyStoreCredentialLookupTest {
             InvalidKeySpecException {
         KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
         ksa.saveKey(
-                new Key(
-                        new UserNameValid(
-                                new UserNameImpl(userName, new Split(':'))
-                        ),
-                        new Salt(
-                                "fofofo"
-                        ),
-                        100_000,
-                        new Split(
-                                ':'
+                new KeySecret(
+                        new Key(
+                                new UserNameValid(
+                                        new UserNameImpl(userName, new Split(':'))
+                                ),
+                                new Salt(
+                                        "fofofo"
+                                ),
+                                100_000,
+                                new Split(
+                                        ':'
+                                )
                         )
                 ),
                 userPassWord.toCharArray());
@@ -91,20 +93,21 @@ public class KeyStoreCredentialLookupTest {
         KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
 
         boolean authOk = ksa.verifyKey(
-                new Key(
-                        new UserNameValid(
-                                new UserNameImpl(userName, new Split(':'))
-                        ),
-                        new Salt(
-                                "fofofo"
-                        ),
-                        100_000,
-                        new Split(
-                                ':'
+                new KeySecret(
+                        new Key(
+                                new UserNameValid(
+                                        new UserNameImpl(userName, new Split(':'))
+                                ),
+                                new Salt(
+                                        "fofofo"
+                                ),
+                                100_000,
+                                new Split(
+                                        ':'
+                                )
                         )
                 ),
-                userPassWord.toCharArray()
-        );
+                userPassWord.toCharArray());
 
         Assertions.assertTrue(authOk);
     }
