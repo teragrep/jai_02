@@ -43,60 +43,31 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
+package com.teragrep.jai_02.keystore;
 
-package com.teragrep.jai_02.tests;
-
-import com.teragrep.jai_02.KeyStoreCredentialLookup;
-import com.teragrep.jai_02.keystore.Credentials;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.*;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class KeyStoreCredentialLookupTest {
+public class CredentialSecretKey {
+    private final Credentials credentials;
+    private final byte[] salt;
+    private final String keyAlgorithm;
 
-    private static String keyStorePath = "target/keystore.p12";
-    private static String keyStorePassword = "changeit";
-    private static String userName = "trusted-12";
-    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
-
-    @Test
-    public void saveTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException {
-        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword);
-        ksa.saveCredentials(new Credentials(userName, userPassWord.getBytes(StandardCharsets.UTF_8)));
+    public CredentialSecretKey(Credentials credentials) {
+        this.credentials = credentials;
+        this.salt = "foofoofo".getBytes(StandardCharsets.UTF_8);
+        this.keyAlgorithm = "PBKDF2WithHmacSHA1";
     }
 
-    @Test
-    public void readTest() throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-
-        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword);
-
-        boolean authOk = ksa.verifyCredentialValidity(
-                new Credentials(
-                        userName,
-                        userPassWord.getBytes(StandardCharsets.UTF_8)
-                )
-        );
-
-        Assertions.assertTrue(authOk);
-    }
-
-    @Test
-    public void bothTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException, UnrecoverableEntryException {
-        saveTest();
-        readTest();
+    public SecretKey get() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // TODO: Allow further configuration?
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(credentials.passwordAsCharArray(), salt, 100_000, 160);
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm);
+        SecretKey pbeKey = secretKeyFactory.generateSecret(pbeKeySpec);
+        return pbeKey;
     }
 }
-
