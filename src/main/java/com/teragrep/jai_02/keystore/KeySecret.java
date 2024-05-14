@@ -45,24 +45,27 @@
  */
 package com.teragrep.jai_02.keystore;
 
-public class Credentials {
-    private final String username;
-    private final byte[] password;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
-    public Credentials(final String username, final byte[] password) {
-        this.username = username;
-        this.password = password;
+public class KeySecret {
+    private final Key key;
+    private final String keyAlgorithm;
+
+    public KeySecret(final Key key) {
+        this.key = key;
+        this.keyAlgorithm = "PBKDF2WithHmacSHA1";
     }
 
-    public String username() {
-        return this.username;
-    }
-
-    public byte[] password() {
-        return this.password;
-    }
-
-    public char[] passwordAsCharArray() {
-        return new String(this.password).toCharArray();
+    public SecretKey get(final char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // TODO: Allow further configuration?
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, key.salt().asBytes(), key.iterationCount(), 160);
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm);
+        return secretKeyFactory.generateSecret(pbeKeySpec);
     }
 }

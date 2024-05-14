@@ -46,9 +46,8 @@
 package com.teragrep.jai_02.keystore;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -57,46 +56,47 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 public class KeyStoreAccess {
     private final String keyStorePath;
-    private final String keyStorePassword;
+    private final char[] keyStorePassword;
 
-    public KeyStoreAccess(String keyStorePath, String keyStorePassword) {
+    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
         this.keyStorePath = keyStorePath;
         this.keyStorePassword = keyStorePassword;
     }
 
-    public SecretKey loadSecretKey(Credentials creds) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    public SecretKey loadKey(final Key key) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
         final KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+        keyStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword);
 
         // TODO 1 concatenate the salt into the alias -> alias:salt and be done with it?
         // TODO 2 create a lookup list that maps alias -> alias:salt for accessing them?
         // TODO 3 create a cache of requests -> success/fail
 
-        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword.toCharArray());
-        KeyStore.SecretKeyEntry ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(creds.username(), passwordProtection);
+        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
+        KeyStore.SecretKeyEntry ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(key.toString(), passwordProtection);
 
-        return ske.getSecretKey();
+        return new SecretKeySpec(ske.getSecretKey().getEncoded(), ske.getSecretKey().getAlgorithm());
     }
 
-    public void saveCredentials(Credentials creds) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public void saveKey(final Key key, final char[] pw) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         final KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
 
-        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword.toCharArray());
-        keyStore.setEntry(creds.username(), new KeyStore.SecretKeyEntry(new CredentialSecretKey(creds).get()), passwordProtection);
+        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
+        keyStore.setEntry(key.toString(), new KeyStore.SecretKeyEntry(new KeySecret(key).get(pw)), passwordProtection);
 
-        keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+        keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
     }
 
-    public boolean verifyCredentialValidity(Credentials creds) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        final SecretKey storedKey = loadSecretKey(creds);
-        final SecretKey newKey = new CredentialSecretKey(creds).get();
+    public boolean verifyKey(final Key key, final char[] pw) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        final SecretKey storedKey = loadKey(key);
+        final SecretKey newKey = new KeySecret(key).get(pw);
 
-        System.out.println("stored = " + storedKey);
-        System.out.println("new = " + newKey);
+        System.out.println("stored = " + Arrays.toString(storedKey.getEncoded()) + " " + storedKey.getAlgorithm() + " " + storedKey.getFormat());
+        System.out.println("new = " + Arrays.toString(newKey.getEncoded()) + " " + newKey.getAlgorithm() + " " + newKey.getFormat());
 
         return storedKey.equals(newKey);
     }

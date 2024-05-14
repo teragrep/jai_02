@@ -46,16 +46,11 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.KeyStoreCredentialLookup;
-import com.teragrep.jai_02.keystore.Credentials;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
+import com.teragrep.jai_02.keystore.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -72,21 +67,43 @@ public class KeyStoreCredentialLookupTest {
     @Test
     public void saveTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
             InvalidKeySpecException {
-        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword);
-        ksa.saveCredentials(new Credentials(userName, userPassWord.getBytes(StandardCharsets.UTF_8)));
+        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+        ksa.saveKey(
+                new Key(
+                        new UserNameValid(
+                                new UserNameImpl(userName, new Split(':'))
+                        ),
+                        new Salt(
+                                "fofofo"
+                        ),
+                        100_000,
+                        new Split(
+                                ':'
+                        )
+                ),
+                userPassWord.toCharArray());
     }
 
     @Test
     public void readTest() throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
-        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword);
+        KeyStoreAccess ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
 
-        boolean authOk = ksa.verifyCredentialValidity(
-                new Credentials(
-                        userName,
-                        userPassWord.getBytes(StandardCharsets.UTF_8)
-                )
+        boolean authOk = ksa.verifyKey(
+                new Key(
+                        new UserNameValid(
+                                new UserNameImpl(userName, new Split(':'))
+                        ),
+                        new Salt(
+                                "fofofo"
+                        ),
+                        100_000,
+                        new Split(
+                                ':'
+                        )
+                ),
+                userPassWord.toCharArray()
         );
 
         Assertions.assertTrue(authOk);
