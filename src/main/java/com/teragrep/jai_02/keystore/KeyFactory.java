@@ -43,58 +43,41 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
+package com.teragrep.jai_02.keystore;
 
-package com.teragrep.jai_02.tests;
+public class KeyFactory {
+    private final Salt salt;
+    private final int iterationCount;
+    private final Split split;
 
-import com.teragrep.jai_02.keystore.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.*;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-
-public class KeyStoreCredentialLookupTest {
-
-    private static String keyStorePath = "target/keystore.p12";
-    private static String keyStorePassword = "changeit";
-    private static String userName = "trusted-12";
-    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
-
-    private static KeyStoreAccess ksa;
-    @BeforeAll
-    public static void prepare() {
-        ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+    public KeyFactory() {
+        this(new SaltFactory().createSalt(), new Split(':'), 100_000);
     }
 
-    @Test
-    public void saveTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException {
-        ksa.saveKey(
-                userName,
-                userPassWord.toCharArray());
+    public KeyFactory(Salt salt, Split split, int iterationCount) {
+        this.salt = salt;
+        this.split = split;
+        this.iterationCount = iterationCount;
     }
 
-    @Test
-    public void readTest() throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-
-        boolean authOk = ksa.verifyKey(
-                userName,
-                userPassWord.toCharArray());
-
-        Assertions.assertTrue(authOk);
+    public Key build(final String username) {
+        return new Key(
+                new UserNameImpl(username, split).asValid(),
+                salt,
+                iterationCount,
+                split
+        );
     }
 
-    @Test
-    public void bothTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException, UnrecoverableEntryException {
-        saveTest();
-        readTest();
+    public Salt salt() {
+        return this.salt;
+    }
+
+    public int iterationCount() {
+        return this.iterationCount;
+    }
+
+    public Split split() {
+        return this.split;
     }
 }
-
