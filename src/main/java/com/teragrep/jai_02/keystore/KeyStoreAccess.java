@@ -46,24 +46,20 @@
 package com.teragrep.jai_02.keystore;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.HashMap;
 
 public class KeyStoreAccess {
-    private final String keyStorePath;
-    private final char[] keyStorePassword;
+    protected final String keyStorePath;
+    protected final char[] keyStorePassword;
     private final KeyFactory keyFactory;
     private final Map<String, String> userToAliasMapping;
+    protected final KeyStore keyStore;
 
     public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
         this(keyStorePath, keyStorePassword, new KeyFactory());
@@ -73,12 +69,10 @@ public class KeyStoreAccess {
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
         this.userToAliasMapping = new HashMap<>();
+        this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
     }
 
-    public SecretKey loadKey(final String username) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
-        // load keyStore from file
-        final KeyStore keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
-
+    public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException {
         // TODO 3 create a cache of requests -> success/fail
 
         // get alias mapping
@@ -88,28 +82,20 @@ public class KeyStoreAccess {
         KeySecret keyWithSecret = new KeySecret(new KeyString(alias, keyFactory.split()).toKey());
 
         // Get SecretKey from keyStore and return marked with appropriate algorithm used
-        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
-        KeyStore.SecretKeyEntry ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyWithSecret.asKey().toString(), passwordProtection);
-        return new SecretKeySpec(ske.getSecretKey().getEncoded(), keyWithSecret.keyAlgorithm());
+        return new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret);
     }
 
-    public void saveKey(final String username, final char[] pw) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        // load keyStore
-        final KeyStore keyStore = new KeyStoreFactory().build();
-
+    public void saveKey(final String username, final char[] pw) throws KeyStoreException {
         // Generate Key based on username and set keyStore password
         KeySecret keyWithSecret = new KeySecret(keyFactory.build(username));
-        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(keyStorePassword);
-
-        // Set entry as user:alias:iterations with value as secretKey for password
-        keyStore.setEntry(keyWithSecret.asKey().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.asSecretKey(pw)), passwordProtection);
+        new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, pw);
 
         // Put user->user:alias mapping and store keyStore in file
         userToAliasMapping.put(keyWithSecret.asKey().userName().userName(), keyWithSecret.asKey().toString());
-        keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
     }
 
-    public boolean verifyKey(final String username, final char[] pw) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public boolean verifyKey(final String username, final char[] pw) throws NoSuchAlgorithmException, InvalidKeySpecException,
+            UnrecoverableEntryException, KeyStoreException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
         final SecretKey newKey = new KeySecret(keyFactory.build(username)).asSecretKey(pw);
