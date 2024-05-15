@@ -68,20 +68,17 @@ public class KeyStoreAccess {
     public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
         this(keyStorePath, keyStorePassword, new KeyFactory());
     }
-    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword, KeyFactory keyFactory) {
+    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword, final KeyFactory keyFactory) {
         this.keyFactory = keyFactory;
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
         this.userToAliasMapping = new HashMap<>();
     }
 
-    public SecretKey loadKey(final String username) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
+    public SecretKey loadKey(final String username) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
         // load keyStore from file
-        final KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword);
+        final KeyStore keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
 
-        // TODO 1 concatenate the salt into the alias -> alias:salt and be done with it?
-        // TODO 2 create a lookup list that maps alias -> alias:salt for accessing them?
         // TODO 3 create a cache of requests -> success/fail
 
         // get alias mapping
@@ -98,8 +95,7 @@ public class KeyStoreAccess {
 
     public void saveKey(final String username, final char[] pw) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         // load keyStore
-        final KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
+        final KeyStore keyStore = new KeyStoreFactory().build();
 
         // Generate Key based on username and set keyStore password
         KeySecret keyWithSecret = new KeySecret(keyFactory.build(username));
@@ -113,7 +109,7 @@ public class KeyStoreAccess {
         keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
     }
 
-    public boolean verifyKey(final String username, final char[] pw) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public boolean verifyKey(final String username, final char[] pw) throws UnrecoverableEntryException, KeyStoreException, NoSuchAlgorithmException, InvalidKeySpecException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
         final SecretKey newKey = new KeySecret(keyFactory.build(username)).asSecretKey(pw);
