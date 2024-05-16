@@ -96,7 +96,7 @@ public class KeyStoreAccess {
         userToAliasMapping.put(keyWithSecret.asKey().userName().userName(), keyWithSecret.asKey().toString());
     }
 
-    public boolean verifyKey(final String username, final char[] pw) throws NoSuchAlgorithmException, InvalidKeySpecException,
+    public boolean verifyKey(final String username, final char[] pw) throws InvalidKeySpecException,
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);

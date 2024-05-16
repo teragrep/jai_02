@@ -70,7 +70,7 @@ public class KeyStoreEntryAccess {
             // shouldn't happen as algorithms are given as enums instead of strings
             throw new RuntimeException(e);
         }
-        return new SecretKeySpec(ske.getSecretKey().getEncoded(), keySecret.keyAlgorithm());
+        return new SecretKeySpec(ske.getSecretKey().getEncoded(), keySecret.keyAlgorithm().asString());
     }
 
     public void storeEntry(KeySecret keySecret, char[] pw) throws KeyStoreException {

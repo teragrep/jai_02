@@ -53,24 +53,44 @@ import java.security.spec.InvalidKeySpecException;
 
 public class KeySecret {
     private final Key key;
-    private final String keyAlgorithm;
+    private final KeyAlgorithm keyAlgorithm;
 
-    public KeySecret(final Key key) {
-        this(key, "PBKDF2WithHmacSHA1");
+    public enum KeyAlgorithm {
+        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
+
+        private final String algo;
+
+        KeyAlgorithm(String algo) {
+            this.algo = algo;
+        }
+
+        public String asString() {
+            return this.algo;
+        }
     }
 
-    public KeySecret(final Key key, final String keyAlgorithm) {
+    public KeySecret(final Key key) {
+        this(key, KeyAlgorithm.PBKDF2WithHmacSHA1);
+    }
+
+    public KeySecret(final Key key, final KeyAlgorithm keyAlgorithm) {
         this.key = key;
         this.keyAlgorithm = keyAlgorithm;
     }
 
-    public SecretKey asSecretKey(final char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public SecretKey asSecretKey(final char[] password) throws InvalidKeySpecException {
         PBEKeySpec pbeKeySpec = new PBEKeySpec(password, key.salt().asBytes(), key.iterationCount(), 160);
-        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm);
+        final SecretKeyFactory secretKeyFactory;
+        try {
+            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.asString());
+        } catch (NoSuchAlgorithmException e) {
+            // Should not happen as the algorithms are defined as known-good enums
+            throw new RuntimeException(e);
+        }
         return secretKeyFactory.generateSecret(pbeKeySpec);
     }
 
-    public String keyAlgorithm() {
+    public KeyAlgorithm keyAlgorithm() {
         return this.keyAlgorithm;
     }
 
