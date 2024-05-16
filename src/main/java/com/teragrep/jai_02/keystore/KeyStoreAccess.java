@@ -46,10 +46,7 @@
 package com.teragrep.jai_02.keystore;
 
 import javax.crypto.SecretKey;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.HashMap;
@@ -72,11 +69,16 @@ public class KeyStoreAccess {
         this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
     }
 
-    public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException {
+    public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // TODO 3 create a cache of requests -> success/fail
 
         // get alias mapping
-        String alias = userToAliasMapping.get(username);
+        final String alias;
+        if (userToAliasMapping.containsKey(username)) {
+            alias = userToAliasMapping.get(username);
+        } else {
+            throw new InvalidKeyException("Username <" + username + "> was not found in the map!");
+        }
 
         // create keyWithSecret object based on KeyString
         KeySecret keyWithSecret = new KeySecret(new KeyString(alias, keyFactory.split()).toKey());
@@ -95,7 +97,7 @@ public class KeyStoreAccess {
     }
 
     public boolean verifyKey(final String username, final char[] pw) throws NoSuchAlgorithmException, InvalidKeySpecException,
-            UnrecoverableEntryException, KeyStoreException {
+            UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
         final SecretKey newKey = new KeySecret(keyFactory.build(username)).asSecretKey(pw);

@@ -52,6 +52,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -72,16 +73,15 @@ public class KeyStoreAccessTest {
     }
 
     @Test
-    public void saveTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException {
+    public void saveTest() throws KeyStoreException{
         ksa.saveKey(
                 userName,
                 userPassWord.toCharArray());
     }
 
     @Test
-    public void readTest() throws IOException, UnrecoverableEntryException, CertificateException, KeyStoreException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+    public void readTest() throws UnrecoverableEntryException, KeyStoreException,
+            NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
 
         boolean authOk = ksa.verifyKey(
                 userName,
@@ -91,8 +91,8 @@ public class KeyStoreAccessTest {
     }
 
     @Test
-    public void bothTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException, UnrecoverableEntryException {
+    public void bothTest() throws KeyStoreException, NoSuchAlgorithmException,
+            InvalidKeySpecException, UnrecoverableEntryException, InvalidKeyException {
         saveTest();
         readTest();
     }
