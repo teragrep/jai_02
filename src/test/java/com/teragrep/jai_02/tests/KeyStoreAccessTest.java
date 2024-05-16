@@ -58,7 +58,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class KeyStoreCredentialLookupTest {
+public class KeyStoreAccessTest {
 
     private static String keyStorePath = "target/keystore.p12";
     private static String keyStorePassword = "changeit";
