@@ -45,32 +45,28 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.cert.CertificateException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class KeyStoreEntryTest {
-    private static String keyStorePath = "target/keystore.p12";
-    private static String keyStorePassword = "changeit";
-    private static String userName = "trusted-12";
-    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
+public class KeyStoreFactoryTest {
     @Test
-    public void keyStoreEntryTest() throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(
-                new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray()));
+    public void keyStoreFactoryTest() throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        KeyStoreFactory ksf = new KeyStoreFactory();
+        KeyStore ks = ksf.build();
 
-        KeySecret ks = new KeySecret(new KeyFactory().build(userName));
-        ksea.storeEntry(ks, userPassWord.toCharArray());
+        KeyStore expected = KeyStore.getInstance("PKCS12");
+        expected.load(null, null);
 
-        SecretKey fetchedSecretKey = ksea.fetchEntry(ks);
-        SecretKey originalSecretKey = ks.asSecretKey(userPassWord.toCharArray());
-
-        assertEquals(originalSecretKey, fetchedSecretKey);
+        // should be equal
+        Assertions.assertEquals(expected.getClass(), ks.getClass());
+        Assertions.assertEquals(expected.getType(), ks.getType());
+        Assertions.assertEquals(expected.getProvider(), ks.getProvider());
+        Assertions.assertEquals(expected.size(), ks.size());
     }
 }
