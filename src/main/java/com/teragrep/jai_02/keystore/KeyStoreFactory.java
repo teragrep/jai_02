@@ -55,36 +55,24 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 public class KeyStoreFactory {
-    public enum KeyStoreAlgorithm {
-        PKCS12("PKCS12");
 
-        private final String algo;
-
-        KeyStoreAlgorithm(String algo) {
-            this.algo = algo;
-        }
-
-        public String asString() {
-            return this.algo;
-        }
-    }
-    private final KeyStoreAlgorithm algorithm;
+    private final KeyAlgorithm algorithm;
     private final String path;
     private final char[] pw;
     public KeyStoreFactory() {
-        this(KeyStoreAlgorithm.PKCS12, null, null);
+        this(new KeyAlgorithm(), null, null);
     }
 
     public KeyStoreFactory(String path, char[] pw) {
-        this(KeyStoreAlgorithm.PKCS12, path, pw);
+        this(new KeyAlgorithm(), path, pw);
     }
 
-    public KeyStoreFactory(KeyStoreAlgorithm ksa) {
-        this(ksa, null, null);
+    public KeyStoreFactory(KeyAlgorithm ka) {
+        this(ka, null, null);
     }
 
-    public KeyStoreFactory(KeyStoreAlgorithm ksa, String path, char[] pw) {
-        this.algorithm = ksa;
+    public KeyStoreFactory(KeyAlgorithm ka, String path, char[] pw) {
+        this.algorithm = ka;
         this.path = path;
         this.pw = pw;
     }
@@ -92,7 +80,7 @@ public class KeyStoreFactory {
     public KeyStore build() {
         final KeyStore ks;
         try {
-            ks = KeyStore.getInstance(algorithm.asString());
+            ks = KeyStore.getInstance(algorithm.forKeyStore().toString());
             InputStream ksStream = path != null ? Files.newInputStream(Paths.get(path)) : null;
             ks.load(ksStream, pw);
         } catch (KeyStoreException | NoSuchAlgorithmException e) {

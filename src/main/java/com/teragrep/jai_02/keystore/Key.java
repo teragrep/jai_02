@@ -63,7 +63,7 @@ public class Key {
 
     @Override
     public String toString() {
-        return userNameValid.userName() + split + salt + split + iterationCount;
+        return userNameValid.asString() + split + salt + split + iterationCount;
     }
 
     public UserName userName() {

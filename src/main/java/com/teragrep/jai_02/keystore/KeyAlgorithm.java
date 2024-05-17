@@ -45,43 +45,66 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+public class KeyAlgorithm {
+    private final KeyStoreAlgorithm keyStoreAlgorithm;
+    private final KeySecretAlgorithm keySecretAlgorithm;
 
-public class KeyStoreEntryAccess {
-    private final KeyStoreAccess ksa;
-    public KeyStoreEntryAccess(KeyStoreAccess ksa) {
-        this.ksa = ksa;
+    public enum KeyStoreAlgorithm {
+        PKCS12("PKCS12");
+
+        private final String algo;
+
+        KeyStoreAlgorithm(String algo) {
+            this.algo = algo;
+        }
+
+        @Override
+        public String toString() {
+            return this.algo;
+        }
     }
 
-    public SecretKeySpec fetchEntry(KeySecret keySecret) throws UnrecoverableEntryException, KeyStoreException {
-        KeyStore.SecretKeyEntry ske;
-        try {
-            ske = (KeyStore.SecretKeyEntry) ksa.keyStore.getEntry(keySecret.asKey().toString(), new KeyStore.PasswordProtection(ksa.keyStorePassword));
-        } catch (NoSuchAlgorithmException e) {
-            // shouldn't happen as algorithms are given as enums instead of strings
-            throw new RuntimeException(e);
+    public enum KeySecretAlgorithm {
+        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
+
+        private final String algo;
+
+        KeySecretAlgorithm(String algo) {
+            this.algo = algo;
         }
-        return new SecretKeySpec(ske.getSecretKey().getEncoded(), keySecret.keyAlgorithm().forKeySecret().toString());
+
+        @Override
+        public String toString() {
+            return this.algo;
+        }
     }
 
-    public void storeEntry(KeySecret keySecret, char[] pw) throws KeyStoreException {
-        try {
-            ksa.keyStore.setEntry(keySecret.asKey().toString(), new KeyStore.SecretKeyEntry(keySecret.asSecretKey(pw)),
-                    new KeyStore.PasswordProtection(ksa.keyStorePassword));
+    /**
+     * Defaults algorithms to:
+     * <ul>
+     * <li>For KeyStore, PKCS12.</li>
+     * <li>For SecretKeys, PBKDF2WithHmacSHA1.</li>
+     * </ul>
+     */
+    public KeyAlgorithm() {
+        this(KeyStoreAlgorithm.PKCS12, KeySecretAlgorithm.PBKDF2WithHmacSHA1);
+    }
 
-            ksa.keyStore.store(Files.newOutputStream(Paths.get(ksa.keyStorePath)), ksa.keyStorePassword);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | CertificateException |
-                 IOException e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * Customize the used algorithms for both KeyStore and individual SecretKeys.
+     * @param keyStoreAlgorithm KeyStore algorithm
+     * @param keySecretAlgorithm SecretKey algorithm
+     */
+    public KeyAlgorithm(KeyStoreAlgorithm keyStoreAlgorithm, KeySecretAlgorithm keySecretAlgorithm) {
+        this.keyStoreAlgorithm = keyStoreAlgorithm;
+        this.keySecretAlgorithm = keySecretAlgorithm;
+    }
+
+    public KeyStoreAlgorithm forKeyStore() {
+        return this.keyStoreAlgorithm;
+    }
+
+    public KeySecretAlgorithm forKeySecret() {
+        return this.keySecretAlgorithm;
     }
 }

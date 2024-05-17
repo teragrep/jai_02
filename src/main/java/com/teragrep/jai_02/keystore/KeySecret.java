@@ -55,22 +55,8 @@ public class KeySecret {
     private final Key key;
     private final KeyAlgorithm keyAlgorithm;
 
-    public enum KeyAlgorithm {
-        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
-
-        private final String algo;
-
-        KeyAlgorithm(String algo) {
-            this.algo = algo;
-        }
-
-        public String asString() {
-            return this.algo;
-        }
-    }
-
     public KeySecret(final Key key) {
-        this(key, KeyAlgorithm.PBKDF2WithHmacSHA1);
+        this(key, new KeyAlgorithm());
     }
 
     public KeySecret(final Key key, final KeyAlgorithm keyAlgorithm) {
@@ -82,7 +68,7 @@ public class KeySecret {
         PBEKeySpec pbeKeySpec = new PBEKeySpec(password, key.salt().asBytes(), key.iterationCount(), 160);
         final SecretKeyFactory secretKeyFactory;
         try {
-            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.asString());
+            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.forKeySecret().toString());
         } catch (NoSuchAlgorithmException e) {
             // Should not happen as the algorithms are defined as known-good enums
             throw new RuntimeException(e);

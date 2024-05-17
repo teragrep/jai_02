@@ -55,7 +55,7 @@ public class UserNameTest {
         Split split = new Split(':');
         UserNameImpl userName = new UserNameImpl("foosh", split);
         UserNameValid userNameValid = userName.asValid();
-        Assertions.assertEquals("foosh", userNameValid.userName());
+        Assertions.assertEquals("foosh", userNameValid.asString());
     }
 
     @Test

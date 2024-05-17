@@ -46,5 +46,5 @@
 package com.teragrep.jai_02.keystore;
 
 public interface UserName {
-    public String userName();
+    String asString();
 }

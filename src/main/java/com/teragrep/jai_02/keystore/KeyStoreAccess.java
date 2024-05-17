@@ -48,6 +48,7 @@ package com.teragrep.jai_02.keystore;
 import javax.crypto.SecretKey;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -93,7 +94,7 @@ public class KeyStoreAccess {
         new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, pw);
 
         // Put user->user:alias mapping and store keyStore in file
-        userToAliasMapping.put(keyWithSecret.asKey().userName().userName(), keyWithSecret.asKey().toString());
+        userToAliasMapping.put(keyWithSecret.asKey().userName().asString(), keyWithSecret.asKey().toString());
     }
 
     public boolean verifyKey(final String username, final char[] pw) throws InvalidKeySpecException,

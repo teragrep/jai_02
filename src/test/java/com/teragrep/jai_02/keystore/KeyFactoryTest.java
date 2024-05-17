@@ -57,7 +57,7 @@ public class KeyFactoryTest {
         KeyFactory kf = new KeyFactory();
         Key k = kf.build(username);
 
-        Assertions.assertEquals(username, k.userName().userName());
+        Assertions.assertEquals(username, k.userName().asString());
         Assertions.assertEquals(split, k.split());
         Assertions.assertEquals(20, k.salt().asBytes().length);
     }
@@ -71,7 +71,7 @@ public class KeyFactoryTest {
         KeyFactory kf = new KeyFactory(salt, split, iterations);
         Key k = kf.build(username);
 
-        Assertions.assertEquals(username, k.userName().userName());
+        Assertions.assertEquals(username, k.userName().asString());
         Assertions.assertEquals(split, k.split());
         Assertions.assertEquals(salt, k.salt());
         Assertions.assertEquals(username + split + salt + split + iterations, k.toString());
