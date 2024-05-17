@@ -45,59 +45,41 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Paths;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import javax.crypto.SecretKey;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.security.UnrecoverableEntryException;
+import java.util.Arrays;
 
-public class KeyStoreFactory {
+public class UserToAliasMappingTest {
+    private static String keyStorePath = "target/keystore.p12";
+    private static String keyStorePassword = "changeit";
+    private static String userName = "trusted-12";
+    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
 
-    private final KeyAlgorithm algorithm;
-    private final String path;
-    private final char[] pw;
-    public KeyStoreFactory() {
-        this(new KeyAlgorithm(), null, null);
+    @Test
+    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException {
+        SecretKey originalKey = save();
+        SecretKey newKey = load();
+        System.out.println(Arrays.toString(originalKey.getEncoded()) + " " + originalKey.getAlgorithm() + " " + originalKey.getFormat());
+        System.out.println(Arrays.toString(newKey.getEncoded()) + " " + newKey.getAlgorithm() + " " + newKey.getFormat());
+
+        // FIXME: Need to differentiate between multiple keys for same user as they can have different keys in KeyStore?
+        Assertions.assertEquals(originalKey, newKey);
     }
 
-    public KeyStoreFactory(String path, char[] pw) {
-        this(new KeyAlgorithm(), path, pw);
+    private SecretKey save() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+        KeyStoreAccess access = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+        access.saveKey(userName, userPassWord.toCharArray());
+        return access.loadKey(userName);
     }
 
-    public KeyStoreFactory(KeyAlgorithm ka) {
-        this(ka, null, null);
-    }
-
-    public KeyStoreFactory(KeyAlgorithm ka, String path, char[] pw) {
-        this.algorithm = ka;
-        this.path = path;
-        this.pw = pw;
-    }
-
-    public KeyStore build() {
-        final KeyStore ks;
-        try {
-            ks = KeyStore.getInstance(algorithm.forKeyStore().toString());
-            if (path == null || Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS)) {
-                ks.load(null, null);
-            } else {
-                ks.load(Files.newInputStream(Paths.get(path)), pw);
-            }
-
-        } catch (KeyStoreException | NoSuchAlgorithmException e) {
-            // This should not happen as the getInstance() method is only invocated with known good
-            // algorithm strings
-            throw new RuntimeException(e);
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize InputStream to KeyStore path <[" + path + "]>\n" + e);
-        }
-
-        return ks;
+    private SecretKey load() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+        KeyStoreAccess access = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+        return access.loadKey(userName);
     }
 }

@@ -56,7 +56,7 @@ public class KeyStoreAccess {
     protected final String keyStorePath;
     protected final char[] keyStorePassword;
     private final KeyFactory keyFactory;
-    private final Map<String, String> userToAliasMapping;
+    private final UserToAliasMapping userToAliasMapping;
     protected final KeyStore keyStore;
 
     public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
@@ -66,8 +66,8 @@ public class KeyStoreAccess {
         this.keyFactory = keyFactory;
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
-        this.userToAliasMapping = new HashMap<>();
         this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
+        this.userToAliasMapping = new UserToAliasMapping(this.keyStore);
     }
 
     public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
@@ -75,7 +75,7 @@ public class KeyStoreAccess {
 
         // get alias mapping
         final String alias;
-        if (userToAliasMapping.containsKey(username)) {
+        if (userToAliasMapping.has(username)) {
             alias = userToAliasMapping.get(username);
         } else {
             throw new InvalidKeyException("Username <" + username + "> was not found in the map!");

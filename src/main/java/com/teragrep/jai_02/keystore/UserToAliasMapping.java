@@ -45,59 +45,43 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
-public class KeyStoreFactory {
+public class UserToAliasMapping {
+    private final Map<String, String> internalMap;
+    public UserToAliasMapping(KeyStore keyStore) {
+        this.internalMap = new HashMap<>();
 
-    private final KeyAlgorithm algorithm;
-    private final String path;
-    private final char[] pw;
-    public KeyStoreFactory() {
-        this(new KeyAlgorithm(), null, null);
-    }
-
-    public KeyStoreFactory(String path, char[] pw) {
-        this(new KeyAlgorithm(), path, pw);
-    }
-
-    public KeyStoreFactory(KeyAlgorithm ka) {
-        this(ka, null, null);
-    }
-
-    public KeyStoreFactory(KeyAlgorithm ka, String path, char[] pw) {
-        this.algorithm = ka;
-        this.path = path;
-        this.pw = pw;
-    }
-
-    public KeyStore build() {
-        final KeyStore ks;
+        // Initialize map with existing contents
+        final Enumeration<String> aliases;
         try {
-            ks = KeyStore.getInstance(algorithm.forKeyStore().toString());
-            if (path == null || Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS)) {
-                ks.load(null, null);
-            } else {
-                ks.load(Files.newInputStream(Paths.get(path)), pw);
-            }
-
-        } catch (KeyStoreException | NoSuchAlgorithmException e) {
-            // This should not happen as the getInstance() method is only invocated with known good
-            // algorithm strings
-            throw new RuntimeException(e);
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize InputStream to KeyStore path <[" + path + "]>\n" + e);
+            aliases = keyStore.aliases();
+        } catch (KeyStoreException e) {
+            throw new RuntimeException("KeyStore was not initialized, " +
+                    "cannot initialize userToAliasMapping!");
         }
 
-        return ks;
+        while (aliases.hasMoreElements()) {
+            final String alias = aliases.nextElement();
+            final Key k = new KeyString(alias, new Split(':')).toKey();
+            //System.out.println("Generating mapping " + k.userName().asString() + "<=>" + alias);
+            this.internalMap.putIfAbsent(k.userName().asString(), alias);
+        }
+    }
+
+    public void put(String username, String fullAlias) {
+        this.internalMap.put(username, fullAlias);
+    }
+
+    public String get(String username) {
+        return this.internalMap.get(username);
+    }
+
+    public boolean has(String username) {
+        return this.internalMap.containsKey(username);
     }
 }
