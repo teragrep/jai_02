@@ -53,7 +53,7 @@ import java.util.Map;
 
 public class UserToAliasMapping {
     private final Map<String, String> internalMap;
-    public UserToAliasMapping(KeyStore keyStore) {
+    public UserToAliasMapping(KeyStore keyStore, Split split) {
         this.internalMap = new HashMap<>();
 
         // Initialize map with existing contents
@@ -67,9 +67,8 @@ public class UserToAliasMapping {
 
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
-            final Key k = new KeyString(alias, new Split(':')).toKey();
-            //System.out.println("Generating mapping " + k.userName().asString() + "<=>" + alias);
-            this.internalMap.putIfAbsent(k.userName().asString(), alias);
+            final Key k = new KeyString(alias, split).toKey();
+            this.internalMap.put(k.userName().asString(), alias);
         }
     }
 

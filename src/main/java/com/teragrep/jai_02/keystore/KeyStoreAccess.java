@@ -45,14 +45,16 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.SecretKey;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 public class KeyStoreAccess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreAccess.class);
     protected final String keyStorePath;
     protected final char[] keyStorePassword;
     private final KeyFactory keyFactory;
@@ -67,7 +69,7 @@ public class KeyStoreAccess {
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
         this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
-        this.userToAliasMapping = new UserToAliasMapping(this.keyStore);
+        this.userToAliasMapping = new UserToAliasMapping(this.keyStore, this.keyFactory.split());
     }
 
     public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
@@ -90,6 +92,8 @@ public class KeyStoreAccess {
 
     public void saveKey(final String username, final char[] pw) throws KeyStoreException {
         // Generate Key based on username and set keyStore password
+        long removed = removeMatchingAliasesFromKeyStore(username);
+        LOGGER.debug("Removed <{}> alias(es) referencing username <[{}]>", removed, username);
         KeySecret keyWithSecret = new KeySecret(keyFactory.build(username));
         new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, pw);
 
@@ -103,5 +107,24 @@ public class KeyStoreAccess {
         final SecretKey storedKey = loadKey(username);
         final SecretKey newKey = new KeySecret(keyFactory.build(username)).asSecretKey(pw);
         return storedKey.equals(newKey);
+    }
+
+    private long removeMatchingAliasesFromKeyStore(final String usernameToCheck) throws KeyStoreException {
+        final Enumeration<String> aliases = keyStore.aliases();
+        final List<String> aliasesToDelete = new ArrayList<>();
+        while (aliases.hasMoreElements()) {
+            final String alias = aliases.nextElement();
+            final KeyString keyString = new KeyString(alias, keyFactory.split());
+            final String username = keyString.toKey().userName().asString();
+            if (username.equals(usernameToCheck)) {
+                aliasesToDelete.add(alias);
+            }
+        }
+
+        for (String alias : aliasesToDelete) {
+            keyStore.deleteEntry(alias);
+        }
+
+        return aliasesToDelete.size();
     }
 }
