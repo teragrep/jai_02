@@ -66,7 +66,7 @@ public class UserToAliasMapping {
 
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
-            final EntryAlias k = new EntryAliasString(alias, split).toKey();
+            final EntryAlias k = new EntryAliasString(alias, split).toEntryAlias();
             this.internalMap.put(k.userName().toString(), alias);
         }
     }

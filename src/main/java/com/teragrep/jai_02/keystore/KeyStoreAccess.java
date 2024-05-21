@@ -88,7 +88,7 @@ public class KeyStoreAccess {
         }
 
         // create keyWithSecret object based on KeyString
-        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(new EntryAliasString(alias, entryAliasFactory.split()).toKey());
+        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
 
         // Get SecretKey from keyStore and return marked with appropriate algorithm used
         return new KeyStoreEntryAccess(keyStoreFactory).fetchEntry(keyWithSecret);
@@ -122,7 +122,7 @@ public class KeyStoreAccess {
             final String alias = aliases.nextElement();
             final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
 
-            final String username = entryAliasString.toKey().userName().toString();
+            final String username = entryAliasString.toEntryAlias().userName().toString();
             if (username.equals(usernameToRemove)) {
                 aliasesToRemove.add(alias);
             }
@@ -146,7 +146,7 @@ public class KeyStoreAccess {
             final String alias = aliases.nextElement();
             final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
 
-            final String username = entryAliasString.toKey().userName().toString();
+            final String username = entryAliasString.toEntryAlias().userName().toString();
             if (username.equals(usernameToCheck)) {
                 exists = true;
                 break;

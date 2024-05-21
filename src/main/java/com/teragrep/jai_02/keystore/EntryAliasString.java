@@ -55,7 +55,7 @@ public class EntryAliasString {
         this.split = split;
     }
 
-    public EntryAlias toKey() {
+    public EntryAlias toEntryAlias() {
         String[] fragments = split.asPattern().split(alias);
         if (fragments.length != 3) {
             throw new IllegalArgumentException("Invalid alias: " + alias + " does not decode into 3 parts with " + split);

@@ -67,7 +67,7 @@ public class EntryAliasTest {
         EntryAlias entryAlias = new EntryAlias(userNameValid, salt, iterationCount, split);
 
         EntryAliasString entryAliasString = new EntryAliasString(entryAlias.toString(), split);
-        EntryAlias other = entryAliasString.toKey();
+        EntryAlias other = entryAliasString.toEntryAlias();
 
         Assertions.assertEquals(entryAlias, other);
     }
