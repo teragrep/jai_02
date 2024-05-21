@@ -56,8 +56,8 @@ public class UserNameValid implements UserName {
     }
 
     @Override
-    public String asString() {
-        return username.asString();
+    public String toString() {
+        return username.toString();
     }
 
     @Override

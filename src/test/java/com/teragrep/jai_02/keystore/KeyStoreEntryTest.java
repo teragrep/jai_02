@@ -62,10 +62,9 @@ public class KeyStoreEntryTest {
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
     @Test
     public void keyStoreEntryTest() throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(
-                new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray()));
+        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()));
 
-        KeySecret ks = new KeySecret(new KeyFactory().build(userName));
+        EntryAliasWithSecretKey ks = new EntryAliasWithSecretKey(new EntryAliasFactory().build(userName));
         ksea.storeEntry(ks, userPassWord.toCharArray());
 
         SecretKey fetchedSecretKey = ksea.fetchEntry(ks);

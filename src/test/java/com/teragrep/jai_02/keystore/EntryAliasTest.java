@@ -48,7 +48,7 @@ package com.teragrep.jai_02.keystore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class KeyTest {
+public class EntryAliasTest {
 
     @Test
     public void testKey () {
@@ -64,11 +64,11 @@ public class KeyTest {
 
         int iterationCount = 100000;
 
-        Key key = new Key(userNameValid, salt, iterationCount, split);
+        EntryAlias entryAlias = new EntryAlias(userNameValid, salt, iterationCount, split);
 
-        KeyString keyString = new KeyString(key.toString(), split);
-        Key other = keyString.toKey();
+        EntryAliasString entryAliasString = new EntryAliasString(entryAlias.toString(), split);
+        EntryAlias other = entryAliasString.toKey();
 
-        Assertions.assertEquals(key, other);
+        Assertions.assertEquals(entryAlias, other);
     }
 }

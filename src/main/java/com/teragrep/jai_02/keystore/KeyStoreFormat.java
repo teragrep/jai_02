@@ -45,57 +45,40 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.util.Objects;
+public class KeyStoreFormat {
+    private final Format format;
+    public enum Format {
+        PKCS12("PKCS12");
 
-public class Key {
+        private final String format;
 
-    private final UserNameValid userNameValid;
-    private final Salt salt;
-    private final int iterationCount;
-    private final Split split;
+        Format(String format) {
+            this.format = format;
+        }
 
-    public Key(UserNameValid userNameValid, Salt salt, int iterationCount, Split split) {
-        this.userNameValid = userNameValid;
-        this.salt = salt;
-        this.iterationCount = iterationCount;
-        this.split = split;
+        @Override
+        public String toString() {
+            return this.format;
+        }
+    }
+
+    /**
+     * Defaults KeyStoreFormat to PKCS12.
+     */
+    public KeyStoreFormat() {
+        this(Format.PKCS12);
+    }
+
+    /**
+     * Define custom KeyStoreFormat
+     * @param format KeyStoreFormat
+     */
+    public KeyStoreFormat(Format format) {
+        this.format = format;
     }
 
     @Override
     public String toString() {
-        return userNameValid.asString() + split + salt + split + iterationCount;
+        return format.toString();
     }
-
-    public UserName userName() {
-        return userNameValid;
-    }
-
-    public Salt salt() {
-        return salt;
-    }
-
-    public int iterationCount() {
-        return iterationCount;
-    }
-
-    public Split split() {
-        return split;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Key key = (Key) o;
-        return iterationCount == key.iterationCount() && Objects.equals(
-                userNameValid, key.userName()) && Objects.equals(salt, key.salt()) && Objects.equals(split, key.split());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userNameValid, salt, iterationCount, split);
-    }
-
 }

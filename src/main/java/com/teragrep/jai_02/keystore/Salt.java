@@ -48,7 +48,6 @@ package com.teragrep.jai_02.keystore;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Objects;
 
 public class Salt {
     private final byte[] salt;

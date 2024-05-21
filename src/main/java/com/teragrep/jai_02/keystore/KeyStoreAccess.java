@@ -49,82 +49,110 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
-import java.security.*;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 public class KeyStoreAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreAccess.class);
     protected final String keyStorePath;
     protected final char[] keyStorePassword;
-    private final KeyFactory keyFactory;
+    private final EntryAliasFactory entryAliasFactory;
     private final UserToAliasMapping userToAliasMapping;
-    protected final KeyStore keyStore;
+    protected KeyStoreFactory keyStoreFactory;
 
     public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
-        this(keyStorePath, keyStorePassword, new KeyFactory());
+        this(keyStorePath, keyStorePassword, new EntryAliasFactory());
     }
-    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword, final KeyFactory keyFactory) {
-        this.keyFactory = keyFactory;
+    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword, final EntryAliasFactory entryAliasFactory) {
+        this.entryAliasFactory = entryAliasFactory;
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
-        this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
-        this.userToAliasMapping = new UserToAliasMapping(this.keyStore, this.keyFactory.split());
+        this.keyStoreFactory = new KeyStoreFactory(keyStorePath, keyStorePassword);
+        this.userToAliasMapping = new UserToAliasMapping(this.keyStoreFactory, this.entryAliasFactory.split());
     }
 
     public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // TODO 3 create a cache of requests -> success/fail
-
         // get alias mapping
         final String alias;
         if (userToAliasMapping.has(username)) {
             alias = userToAliasMapping.get(username);
         } else {
-            throw new InvalidKeyException("Username <" + username + "> was not found in the map!");
+            throw new InvalidKeyException("Username <[" + username + "]> was not found in the map!");
         }
 
         // create keyWithSecret object based on KeyString
-        KeySecret keyWithSecret = new KeySecret(new KeyString(alias, keyFactory.split()).toKey());
+        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(new EntryAliasString(alias, entryAliasFactory.split()).toKey());
 
         // Get SecretKey from keyStore and return marked with appropriate algorithm used
-        return new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret);
+        return new KeyStoreEntryAccess(keyStoreFactory).fetchEntry(keyWithSecret);
     }
 
     public void saveKey(final String username, final char[] pw) throws KeyStoreException {
         // Generate Key based on username and set keyStore password
-        long removed = removeMatchingAliasesFromKeyStore(username);
-        LOGGER.debug("Removed <{}> alias(es) referencing username <[{}]>", removed, username);
-        KeySecret keyWithSecret = new KeySecret(keyFactory.build(username));
-        new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, pw);
+        boolean aliasAlreadyExists = checkForExistingAlias(username);
+        if (aliasAlreadyExists) {
+            throw new IllegalArgumentException("Alias for username <[" + username + "]> already exists in KeyStore!");
+        }
+        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(entryAliasFactory.build(username));
+        new KeyStoreEntryAccess(keyStoreFactory).storeEntry(keyWithSecret, pw);
 
         // Put user->user:alias mapping and store keyStore in file
-        userToAliasMapping.put(keyWithSecret.asKey().userName().asString(), keyWithSecret.asKey().toString());
+        userToAliasMapping.put(keyWithSecret.asKey().userName().toString(), keyWithSecret.asKey().toString());
     }
 
     public boolean verifyKey(final String username, final char[] pw) throws InvalidKeySpecException,
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
-        final SecretKey newKey = new KeySecret(keyFactory.build(username)).asSecretKey(pw);
+        final SecretKey newKey = new EntryAliasWithSecretKey(entryAliasFactory.build(username)).asSecretKey(pw);
         return storedKey.equals(newKey);
     }
 
-    private long removeMatchingAliasesFromKeyStore(final String usernameToCheck) throws KeyStoreException {
-        final Enumeration<String> aliases = keyStore.aliases();
-        final List<String> aliasesToDelete = new ArrayList<>();
+    public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
+        final Enumeration<String> aliases = keyStoreFactory.build().aliases();
+        final List<String> aliasesToRemove = new ArrayList<>();
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
-            final KeyString keyString = new KeyString(alias, keyFactory.split());
-            final String username = keyString.toKey().userName().asString();
-            if (username.equals(usernameToCheck)) {
-                aliasesToDelete.add(alias);
+            final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
+
+            final String username = entryAliasString.toKey().userName().toString();
+            if (username.equals(usernameToRemove)) {
+                aliasesToRemove.add(alias);
             }
         }
 
-        for (String alias : aliasesToDelete) {
-            keyStore.deleteEntry(alias);
+        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(keyStoreFactory);
+        for (String alias : aliasesToRemove) {
+            ksea.deleteEntry(alias);
         }
 
-        return aliasesToDelete.size();
+        userToAliasMapping.remove(usernameToRemove);
+
+        return aliasesToRemove.size();
+    }
+
+    private boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
+        boolean exists = false;
+
+        final Enumeration<String> aliases = keyStoreFactory.build().aliases();
+        while (aliases.hasMoreElements()) {
+            final String alias = aliases.nextElement();
+            final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
+
+            final String username = entryAliasString.toKey().userName().toString();
+            if (username.equals(usernameToCheck)) {
+                exists = true;
+                break;
+            }
+        }
+
+        return exists;
     }
 }

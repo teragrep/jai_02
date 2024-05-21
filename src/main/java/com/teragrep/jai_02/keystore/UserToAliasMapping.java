@@ -45,7 +45,6 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -53,13 +52,13 @@ import java.util.Map;
 
 public class UserToAliasMapping {
     private final Map<String, String> internalMap;
-    public UserToAliasMapping(KeyStore keyStore, Split split) {
+    public UserToAliasMapping(KeyStoreFactory keyStoreFactory, Split split) {
         this.internalMap = new HashMap<>();
 
         // Initialize map with existing contents
         final Enumeration<String> aliases;
         try {
-            aliases = keyStore.aliases();
+            aliases = keyStoreFactory.build().aliases();
         } catch (KeyStoreException e) {
             throw new RuntimeException("KeyStore was not initialized, " +
                     "cannot initialize userToAliasMapping!");
@@ -67,8 +66,8 @@ public class UserToAliasMapping {
 
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
-            final Key k = new KeyString(alias, split).toKey();
-            this.internalMap.put(k.userName().asString(), alias);
+            final EntryAlias k = new EntryAliasString(alias, split).toKey();
+            this.internalMap.put(k.userName().toString(), alias);
         }
     }
 
@@ -82,5 +81,9 @@ public class UserToAliasMapping {
 
     public boolean has(String username) {
         return this.internalMap.containsKey(username);
+    }
+
+    public void remove(String username) {
+        this.internalMap.remove(username);
     }
 }

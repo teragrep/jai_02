@@ -45,44 +45,57 @@
  */
 package com.teragrep.jai_02.keystore;
 
-public class KeyAlgorithm {
-    private final KeySecretAlgorithm keySecretAlgorithm;
+import java.util.Objects;
 
-    public enum KeySecretAlgorithm {
-        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
+public class EntryAlias {
 
-        private final String algo;
+    private final UserNameValid userNameValid;
+    private final Salt salt;
+    private final int iterationCount;
+    private final Split split;
 
-        KeySecretAlgorithm(String algo) {
-            this.algo = algo;
-        }
-
-        @Override
-        public String toString() {
-            return this.algo;
-        }
+    public EntryAlias(UserNameValid userNameValid, Salt salt, int iterationCount, Split split) {
+        this.userNameValid = userNameValid;
+        this.salt = salt;
+        this.iterationCount = iterationCount;
+        this.split = split;
     }
 
-    /**
-     * Defaults algorithms to:
-     * <ul>
-     * <li>For SecretKeys, PBKDF2WithHmacSHA1.</li>
-     * </ul>
-     */
-    public KeyAlgorithm() {
-        this(KeySecretAlgorithm.PBKDF2WithHmacSHA1);
+    @Override
+    public String toString() {
+        return userNameValid.toString() + split + salt + split + iterationCount;
     }
 
-    /**
-     * Customize the used algorithms for individual SecretKeys.
-     * @param keySecretAlgorithm SecretKey algorithm
-     */
-    public KeyAlgorithm(KeySecretAlgorithm keySecretAlgorithm) {
-        this.keySecretAlgorithm = keySecretAlgorithm;
+    public UserName userName() {
+        return userNameValid;
     }
 
-
-    public KeySecretAlgorithm get() {
-        return this.keySecretAlgorithm;
+    public Salt salt() {
+        return salt;
     }
+
+    public int iterationCount() {
+        return iterationCount;
+    }
+
+    public Split split() {
+        return split;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        EntryAlias entryAlias = (EntryAlias) o;
+        return iterationCount == entryAlias.iterationCount() && Objects.equals(
+                userNameValid, entryAlias.userName()) && Objects.equals(salt, entryAlias.salt()) && Objects.equals(split, entryAlias.split());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userNameValid, salt, iterationCount, split);
+    }
+
 }

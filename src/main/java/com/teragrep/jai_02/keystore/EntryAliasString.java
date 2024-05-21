@@ -45,17 +45,17 @@
  */
 package com.teragrep.jai_02.keystore;
 
-public class KeyString {
+public class EntryAliasString {
 
     private final String alias;
     private final Split split;
 
-    public KeyString(String alias, Split split) {
+    public EntryAliasString(String alias, Split split) {
         this.alias = alias;
         this.split = split;
     }
 
-    public Key toKey() {
+    public EntryAlias toKey() {
         String[] fragments = split.asPattern().split(alias);
         if (fragments.length != 3) {
             throw new IllegalArgumentException("Invalid alias: " + alias + " does not decode into 3 parts with " + split);
@@ -66,7 +66,7 @@ public class KeyString {
         Salt salt = new Salt(fragments[1]);
         int iterationCount = Integer.parseInt(fragments[2]);
 
-        return new Key(userNameValid, salt, iterationCount, split);
+        return new EntryAlias(userNameValid, salt, iterationCount, split);
     }
 
     @Override

@@ -51,24 +51,24 @@ import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-public class KeySecret {
-    private final Key key;
+public class EntryAliasWithSecretKey {
+    private final EntryAlias entryAlias;
     private final KeyAlgorithm keyAlgorithm;
 
-    public KeySecret(final Key key) {
-        this(key, new KeyAlgorithm());
+    public EntryAliasWithSecretKey(final EntryAlias entryAlias) {
+        this(entryAlias, new KeyAlgorithm());
     }
 
-    public KeySecret(final Key key, final KeyAlgorithm keyAlgorithm) {
-        this.key = key;
+    public EntryAliasWithSecretKey(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
+        this.entryAlias = entryAlias;
         this.keyAlgorithm = keyAlgorithm;
     }
 
     public SecretKey asSecretKey(final char[] password) throws InvalidKeySpecException {
-        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, key.salt().asBytes(), key.iterationCount(), 160);
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
         final SecretKeyFactory secretKeyFactory;
         try {
-            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.forKeySecret().toString());
+            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.get().toString());
         } catch (NoSuchAlgorithmException e) {
             // Should not happen as the algorithms are defined as known-good enums
             throw new RuntimeException(e);
@@ -80,7 +80,7 @@ public class KeySecret {
         return this.keyAlgorithm;
     }
 
-    public Key asKey() {
-        return this.key;
+    public EntryAlias asKey() {
+        return this.entryAlias;
     }
 }

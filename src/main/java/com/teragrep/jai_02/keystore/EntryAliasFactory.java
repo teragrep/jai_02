@@ -45,35 +45,39 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+public class EntryAliasFactory {
+    private final Salt salt;
+    private final int iterationCount;
+    private final Split split;
 
-public class KeyFactoryTest {
-
-    @Test
-    public void keyFactoryTest() {
-        final String username = "user0";
-        final Split split = new Split(':');
-        KeyFactory kf = new KeyFactory();
-        Key k = kf.build(username);
-
-        Assertions.assertEquals(username, k.userName().asString());
-        Assertions.assertEquals(split, k.split());
-        Assertions.assertEquals(20, k.salt().asBytes().length);
+    public EntryAliasFactory() {
+        this(new SaltFactory().createSalt(), new Split(':'), 100_000);
     }
 
-    @Test
-    public void customKeyFactoryTest() {
-        final String username = "user0";
-        final Salt salt = new SaltFactory().createSalt();
-        final Split split = new Split(':');
-        final int iterations = 150_000;
-        KeyFactory kf = new KeyFactory(salt, split, iterations);
-        Key k = kf.build(username);
+    public EntryAliasFactory(Salt salt, Split split, int iterationCount) {
+        this.salt = salt;
+        this.split = split;
+        this.iterationCount = iterationCount;
+    }
 
-        Assertions.assertEquals(username, k.userName().asString());
-        Assertions.assertEquals(split, k.split());
-        Assertions.assertEquals(salt, k.salt());
-        Assertions.assertEquals(username + split + salt + split + iterations, k.toString());
+    public EntryAlias build(final String username) {
+        return new EntryAlias(
+                new UserNameImpl(username, split).asValid(),
+                salt,
+                iterationCount,
+                split
+        );
+    }
+
+    public Salt salt() {
+        return this.salt;
+    }
+
+    public int iterationCount() {
+        return this.iterationCount;
+    }
+
+    public Split split() {
+        return this.split;
     }
 }

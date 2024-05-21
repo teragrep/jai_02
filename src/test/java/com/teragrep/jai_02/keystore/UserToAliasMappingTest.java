@@ -46,40 +46,52 @@
 package com.teragrep.jai_02.keystore;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.util.Arrays;
+import java.security.cert.CertificateException;
 
 public class UserToAliasMappingTest {
     private static String keyStorePath = "target/keystore.p12";
     private static String keyStorePassword = "changeit";
     private static String userName = "trusted-12";
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
+    private static KeyStoreAccess ksa;
+
+    @BeforeAll
+    public static void prepare() {
+        ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+    }
 
     @Test
-    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException {
+    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException, InterruptedException, CertificateException, IOException, NoSuchAlgorithmException {
+        delete(userName);
         SecretKey originalKey = save();
         SecretKey newKey = load();
-        System.out.println(Arrays.toString(originalKey.getEncoded()) + " " + originalKey.getAlgorithm() + " " + originalKey.getFormat());
-        System.out.println(Arrays.toString(newKey.getEncoded()) + " " + newKey.getAlgorithm() + " " + newKey.getFormat());
-
-        // FIXME: Need to differentiate between multiple keys for same user as they can have different keys in KeyStore?
         Assertions.assertEquals(originalKey, newKey);
     }
 
+    @Test
+    public void saveFailTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, this::save, "");
+    }
+
     private SecretKey save() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        KeyStoreAccess access = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
-        access.saveKey(userName, userPassWord.toCharArray());
-        return access.loadKey(userName);
+        ksa.saveKey(userName, userPassWord.toCharArray());
+        return load();
     }
 
     private SecretKey load() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        KeyStoreAccess access = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
-        return access.loadKey(userName);
+        return ksa.loadKey(userName);
+    }
+
+    private void delete(String username) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray()).deleteKey(username);
     }
 }

@@ -64,7 +64,7 @@ public class UserNameImpl implements UserName {
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return username;
     }
 

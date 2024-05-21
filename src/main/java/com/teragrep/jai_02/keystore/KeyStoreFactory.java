@@ -46,7 +46,6 @@
 package com.teragrep.jai_02.keystore;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
@@ -57,23 +56,23 @@ import java.security.cert.CertificateException;
 
 public class KeyStoreFactory {
 
-    private final KeyAlgorithm algorithm;
+    private final KeyStoreFormat keyStoreFormat;
     private final String path;
     private final char[] pw;
     public KeyStoreFactory() {
-        this(new KeyAlgorithm(), null, null);
+        this(new KeyStoreFormat(), null, null);
     }
 
     public KeyStoreFactory(String path, char[] pw) {
-        this(new KeyAlgorithm(), path, pw);
+        this(new KeyStoreFormat(), path, pw);
     }
 
-    public KeyStoreFactory(KeyAlgorithm ka) {
+    public KeyStoreFactory(KeyStoreFormat ka) {
         this(ka, null, null);
     }
 
-    public KeyStoreFactory(KeyAlgorithm ka, String path, char[] pw) {
-        this.algorithm = ka;
+    public KeyStoreFactory(KeyStoreFormat ka, String path, char[] pw) {
+        this.keyStoreFormat = ka;
         this.path = path;
         this.pw = pw;
     }
@@ -81,7 +80,7 @@ public class KeyStoreFactory {
     public KeyStore build() {
         final KeyStore ks;
         try {
-            ks = KeyStore.getInstance(algorithm.forKeyStore().toString());
+            ks = KeyStore.getInstance(keyStoreFormat.toString());
             if (path == null || Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS)) {
                 ks.load(null, null);
             } else {
@@ -99,5 +98,13 @@ public class KeyStoreFactory {
         }
 
         return ks;
+    }
+
+    public char[] password() {
+        return this.pw;
+    }
+
+    public String path() {
+        return this.path;
     }
 }

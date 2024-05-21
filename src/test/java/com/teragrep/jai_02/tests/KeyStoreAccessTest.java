@@ -46,12 +46,12 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.*;
+import com.teragrep.jai_02.keystore.KeyStoreAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -68,20 +68,19 @@ public class KeyStoreAccessTest {
 
     private static KeyStoreAccess ksa;
     @BeforeAll
-    public static void prepare() {
+    public static void prepare() throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+        ksa.deleteKey(userName);
     }
 
-    @Test
-    public void saveTest() throws KeyStoreException{
+    public void save() throws KeyStoreException {
         ksa.saveKey(
                 userName,
                 userPassWord.toCharArray());
     }
 
-    @Test
-    public void readTest() throws UnrecoverableEntryException, KeyStoreException,
-            NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+    public void verify() throws UnrecoverableEntryException, KeyStoreException,
+            InvalidKeySpecException, InvalidKeyException {
 
         boolean authOk = ksa.verifyKey(
                 userName,
@@ -91,10 +90,10 @@ public class KeyStoreAccessTest {
     }
 
     @Test
-    public void bothTest() throws KeyStoreException, NoSuchAlgorithmException,
+    public void saveAndVerifyTest() throws KeyStoreException,
             InvalidKeySpecException, UnrecoverableEntryException, InvalidKeyException {
-        saveTest();
-        readTest();
+        save();
+        verify();
     }
 }
 
