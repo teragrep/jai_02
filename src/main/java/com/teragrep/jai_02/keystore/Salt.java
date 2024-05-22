@@ -49,6 +49,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 
+/**
+ * Defines the salt used for salting the SecretKey.
+ */
 public class Salt {
     private final byte[] salt;
 

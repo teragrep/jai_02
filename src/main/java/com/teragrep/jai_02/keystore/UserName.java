@@ -45,6 +45,10 @@
  */
 package com.teragrep.jai_02.keystore;
 
+/**
+ * Interface used for the username.
+ * First part of the EntryAlias, followed by salt and iteration count.
+ */
 public interface UserName {
     @Override String toString();
 }

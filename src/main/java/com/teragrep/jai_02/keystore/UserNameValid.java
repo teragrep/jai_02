@@ -47,6 +47,9 @@ package com.teragrep.jai_02.keystore;
 
 import java.util.Objects;
 
+/**
+ * Validated UserName, not to contain the Split character.
+ */
 public class UserNameValid implements UserName {
 
     private final UserName username;

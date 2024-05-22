@@ -58,6 +58,11 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * Provides access to the KeyStore, such as loading, saving
+ * and deleting entries. Keeps track of the username->alias mapping
+ * via the UserToAliasMapping object.
+ */
 public class KeyStoreAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreAccess.class);
     protected final String keyStorePath;

@@ -45,6 +45,10 @@
  */
 package com.teragrep.jai_02.keystore;
 
+/**
+ * Provides facilities to generate an EntryAlias object from
+ * a compliant String.
+ */
 public class EntryAliasString {
 
     private final String alias;

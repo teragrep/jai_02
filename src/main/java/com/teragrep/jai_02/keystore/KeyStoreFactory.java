@@ -54,6 +54,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
+/**
+ * Provides a factory, which builds KeyStores from the
+ * defined path and format.
+ */
 public class KeyStoreFactory {
 
     private final KeyStoreFormat keyStoreFormat;

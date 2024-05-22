@@ -50,6 +50,11 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Map between the username and EntryAlias.
+ * Loads existing aliases from the KeyStore on object initialization.
+ * If there are multiple aliases for one username, the last one encountered takes priority.
+ */
 public class UserToAliasMapping {
     private final Map<String, String> internalMap;
     public UserToAliasMapping(KeyStoreFactory keyStoreFactory, Split split) {

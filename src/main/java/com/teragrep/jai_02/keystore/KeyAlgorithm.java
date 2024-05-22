@@ -45,6 +45,9 @@
  */
 package com.teragrep.jai_02.keystore;
 
+/**
+ * An object containing the algorithm used for SecretKeys.
+ */
 public class KeyAlgorithm {
     private final KeySecretAlgorithm keySecretAlgorithm;
 

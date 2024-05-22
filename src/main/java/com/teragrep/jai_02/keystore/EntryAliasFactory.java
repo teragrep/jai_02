@@ -45,6 +45,9 @@
  */
 package com.teragrep.jai_02.keystore;
 
+/**
+ * Provides a factory for building EntryAlias objects.
+ */
 public class EntryAliasFactory {
     private final Salt salt;
     private final int iterationCount;

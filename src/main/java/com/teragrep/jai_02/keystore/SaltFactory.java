@@ -47,6 +47,9 @@ package com.teragrep.jai_02.keystore;
 
 import java.security.SecureRandom;
 
+/**
+ * Provides a factory, which builds the Salt object.
+ */
 public class SaltFactory {
 
     private final int length;

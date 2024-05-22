@@ -47,6 +47,9 @@ package com.teragrep.jai_02.keystore;
 
 import java.util.Objects;
 
+/**
+ * Implementation of the UserName interface.
+ */
 public class UserNameImpl implements UserName {
 
     public final String username;

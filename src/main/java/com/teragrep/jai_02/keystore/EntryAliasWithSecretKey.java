@@ -51,6 +51,10 @@ import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
+/**
+ * Wraps an EntryAlias object with the SecretKey using
+ * the provided algorithm.
+ */
 public class EntryAliasWithSecretKey {
     private final EntryAlias entryAlias;
     private final KeyAlgorithm keyAlgorithm;

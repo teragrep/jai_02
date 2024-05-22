@@ -48,6 +48,10 @@ package com.teragrep.jai_02.keystore;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * Provides the Split character and Regex pattern of said character used
+ * in the EntryAlias.
+ */
 public class Split {
 
     private final char splitChar;

@@ -45,6 +45,9 @@
  */
 package com.teragrep.jai_02.keystore;
 
+/**
+ * Defines the format used for the KeyStore.
+ */
 public class KeyStoreFormat {
     private final Format format;
     public enum Format {

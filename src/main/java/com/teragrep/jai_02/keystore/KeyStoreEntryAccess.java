@@ -56,6 +56,11 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
+/**
+ * Provides access to the entries in the KeyStore, such as
+ * loading, saving and deleting. Stores the KeyStore to persistent
+ * storage after each operation.
+ */
 public class KeyStoreEntryAccess {
     private final KeyStoreFactory keyStoreFactory;
     public KeyStoreEntryAccess(KeyStoreFactory ksf) {

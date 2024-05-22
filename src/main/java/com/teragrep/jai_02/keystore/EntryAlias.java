@@ -47,6 +47,10 @@ package com.teragrep.jai_02.keystore;
 
 import java.util.Objects;
 
+/**
+ * Provides an alias for a KeyStore Entry.
+ * Contains the username, salt, iteration count and split character.
+ */
 public class EntryAlias {
 
     private final UserNameValid userNameValid;
