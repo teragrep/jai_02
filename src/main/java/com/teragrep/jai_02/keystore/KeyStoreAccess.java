@@ -45,9 +45,6 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -55,9 +52,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 /**
  * Provides access to the KeyStore, such as loading, saving
@@ -82,9 +77,8 @@ public class KeyStoreAccess {
         this.userToAliasMapping = new UserToAliasMapping(new KeyStoreEntryAccess(this), this.entryAliasFactory.split());
     }
 
-    public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        // TODO 3 create a cache of requests -> success/fail
-        // get alias mapping
+    public EntryAliasValuePair loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+        // TODO create a cache of requests -> success/fail
         final String alias;
         if (userToAliasMapping.has(username)) {
             alias = userToAliasMapping.get(username);
@@ -92,11 +86,11 @@ public class KeyStoreAccess {
             throw new InvalidKeyException("Username <[" + username + "]> was not found in the map!");
         }
 
-        // create keyWithSecret object based on KeyString
         EntryAliasSecretKeyFactory keyWithSecret = new EntryAliasSecretKeyFactory(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
-
-        // Get SecretKey from keyStore and return marked with appropriate algorithm used
-        return new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret);
+        return new EntryAliasValuePair(
+                keyWithSecret.asEntryAlias(),
+                new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret)
+        );
     }
 
     public void saveKey(final String username, final char[] password) throws KeyStoreException {
@@ -114,10 +108,10 @@ public class KeyStoreAccess {
 
     public boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        // Get stored SecretKey and compare to newly generated key
-        final SecretKey storedKey = loadKey(username);
-        final SecretKey newKey = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username)).build(password);
-        return storedKey.equals(newKey);
+        // Get stored SecretKey and compare to newly generated key with same salt
+        final EntryAliasValuePair storedKeyPair = loadKey(username);
+        final SecretKey newKey = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username, storedKeyPair.entryAlias().salt())).build(password);
+        return storedKeyPair.secretKey().equals(newKey);
     }
 
     public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {

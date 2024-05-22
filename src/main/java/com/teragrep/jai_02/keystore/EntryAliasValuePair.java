@@ -45,51 +45,25 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import javax.crypto.SecretKey;
+
 /**
- * Provides a factory for building EntryAlias objects.
+ * Key-Value pair of EntryAlias and SecretKey.
  */
-public class EntryAliasFactory {
-    private final SaltFactory saltFactory;
-    private final int iterationCount;
-    private final Split split;
+public class EntryAliasValuePair {
+    private final EntryAlias entryAlias;
+    private final SecretKey secretKey;
 
-    public EntryAliasFactory() {
-        this(new SaltFactory(), new Split(':'), 100_000);
+    public EntryAliasValuePair(EntryAlias entryAlias, SecretKey secretKey) {
+        this.entryAlias = entryAlias;
+        this.secretKey = secretKey;
     }
 
-    public EntryAliasFactory(SaltFactory saltFactory, Split split, int iterationCount) {
-        this.saltFactory = saltFactory;
-        this.split = split;
-        this.iterationCount = iterationCount;
+    public EntryAlias entryAlias() {
+        return entryAlias;
     }
 
-    public EntryAlias build(final String username) {
-        return new EntryAlias(
-                new UserNameImpl(username, split).asValid(),
-                saltFactory.createSalt(),
-                iterationCount,
-                split
-        );
-    }
-
-    public EntryAlias build(final String username, final Salt salt) {
-        return new EntryAlias(
-                new UserNameImpl(username, split).asValid(),
-                salt,
-                iterationCount,
-                split
-        );
-    }
-
-    public SaltFactory saltFactory() {
-        return this.saltFactory;
-    }
-
-    public int iterationCount() {
-        return this.iterationCount;
-    }
-
-    public Split split() {
-        return this.split;
+    public SecretKey secretKey() {
+        return secretKey;
     }
 }

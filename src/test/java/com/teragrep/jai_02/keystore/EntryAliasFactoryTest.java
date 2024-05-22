@@ -65,15 +65,14 @@ public class EntryAliasFactoryTest {
     @Test
     public void customKeyFactoryTest() {
         final String username = "user0";
-        final Salt salt = new SaltFactory().createSalt();
+        final SaltFactory saltFactory = new SaltFactory();
         final Split split = new Split(':');
         final int iterations = 150_000;
-        EntryAliasFactory kf = new EntryAliasFactory(salt, split, iterations);
+        EntryAliasFactory kf = new EntryAliasFactory(saltFactory, split, iterations);
         EntryAlias k = kf.build(username);
 
         Assertions.assertEquals(username, k.userName().toString());
         Assertions.assertEquals(split, k.split());
-        Assertions.assertEquals(salt, k.salt());
-        Assertions.assertEquals(username + split + salt + split + iterations, k.toString());
+        Assertions.assertEquals(username + split + k.salt().toString() + split + iterations, k.toString());
     }
 }

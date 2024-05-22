@@ -70,7 +70,7 @@ public class UserToAliasMappingTest {
     }
 
     @Test
-    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException, InterruptedException, CertificateException, IOException, NoSuchAlgorithmException {
+    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException, IOException {
         delete(userName);
         SecretKey originalKey = save();
         SecretKey newKey = load();
@@ -88,10 +88,10 @@ public class UserToAliasMappingTest {
     }
 
     private SecretKey load() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return ksa.loadKey(userName);
+        return ksa.loadKey(userName).secretKey();
     }
 
-    private void delete(String username) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    private void delete(String username) throws KeyStoreException, IOException {
         ksa.deleteKey(username);
     }
 }
