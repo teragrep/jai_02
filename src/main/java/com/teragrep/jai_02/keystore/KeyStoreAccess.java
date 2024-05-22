@@ -94,24 +94,24 @@ public class KeyStoreAccess {
         return new KeyStoreEntryAccess(keyStoreFactory).fetchEntry(keyWithSecret);
     }
 
-    public void saveKey(final String username, final char[] pw) throws KeyStoreException {
+    public void saveKey(final String username, final char[] password) throws KeyStoreException {
         // Generate Key based on username and set keyStore password
         boolean aliasAlreadyExists = checkForExistingAlias(username);
         if (aliasAlreadyExists) {
             throw new IllegalArgumentException("Alias for username <[" + username + "]> already exists in KeyStore!");
         }
         EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(entryAliasFactory.build(username));
-        new KeyStoreEntryAccess(keyStoreFactory).storeEntry(keyWithSecret, pw);
+        new KeyStoreEntryAccess(keyStoreFactory).storeEntry(keyWithSecret, password);
 
         // Put user->user:alias mapping and store keyStore in file
         userToAliasMapping.put(keyWithSecret.asEntryAlias().userName().toString(), keyWithSecret.asEntryAlias().toString());
     }
 
-    public boolean verifyKey(final String username, final char[] pw) throws InvalidKeySpecException,
+    public boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
-        final SecretKey newKey = new EntryAliasWithSecretKey(entryAliasFactory.build(username)).asSecretKey(pw);
+        final SecretKey newKey = new EntryAliasWithSecretKey(entryAliasFactory.build(username)).asSecretKey(password);
         return storedKey.equals(newKey);
     }
 

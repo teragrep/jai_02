@@ -73,10 +73,10 @@ public class KeyStoreEntryAccess {
         return new SecretKeySpec(ske.getSecretKey().getEncoded(), entryAliasWithSecretKey.keyAlgorithm().get().toString());
     }
 
-    public void storeEntry(EntryAliasWithSecretKey entryAliasWithSecretKey, char[] pw) throws KeyStoreException {
+    public void storeEntry(EntryAliasWithSecretKey entryAliasWithSecretKey, char[] password) throws KeyStoreException {
         KeyStore ks = keyStoreFactory.build();
         try {
-            ks.setEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(entryAliasWithSecretKey.asSecretKey(pw)),
+            ks.setEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(entryAliasWithSecretKey.asSecretKey(password)),
                     new KeyStore.PasswordProtection(keyStoreFactory.password()));
 
             ks.store(Files.newOutputStream(Paths.get(keyStoreFactory.path())), keyStoreFactory.password());
