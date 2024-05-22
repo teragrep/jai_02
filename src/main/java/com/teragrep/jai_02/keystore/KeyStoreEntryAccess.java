@@ -55,6 +55,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Enumeration;
 
 /**
  * Provides access to the entries in the KeyStore, such as
@@ -62,29 +63,28 @@ import java.security.spec.InvalidKeySpecException;
  * storage after each operation.
  */
 public class KeyStoreEntryAccess {
-    private final KeyStoreFactory keyStoreFactory;
-    public KeyStoreEntryAccess(KeyStoreFactory ksf) {
-        this.keyStoreFactory = ksf;
+    private final KeyStoreAccess ksa;
+    public KeyStoreEntryAccess(KeyStoreAccess ksa) {
+        this.ksa = ksa;
     }
 
-    public SecretKeySpec fetchEntry(EntryAliasWithSecretKey entryAliasWithSecretKey) throws UnrecoverableEntryException, KeyStoreException {
+    public SecretKeySpec fetchEntry(EntryAliasSecretKeyFactory entryAliasSecretKeyFactory) throws UnrecoverableEntryException, KeyStoreException {
         KeyStore.SecretKeyEntry ske;
         try {
-            ske = (KeyStore.SecretKeyEntry) keyStoreFactory.build().getEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.PasswordProtection(keyStoreFactory.password()));
+            ske = (KeyStore.SecretKeyEntry) ksa.keyStore().getEntry(entryAliasSecretKeyFactory.asEntryAlias().toString(), new KeyStore.PasswordProtection(ksa.keyStorePassword()));
         } catch (NoSuchAlgorithmException e) {
             // shouldn't happen as algorithms are given as enums instead of strings
             throw new RuntimeException(e);
         }
-        return new SecretKeySpec(ske.getSecretKey().getEncoded(), entryAliasWithSecretKey.keyAlgorithm().get().toString());
+        return new SecretKeySpec(ske.getSecretKey().getEncoded(), entryAliasSecretKeyFactory.keyAlgorithm().get().toString());
     }
 
-    public void storeEntry(EntryAliasWithSecretKey entryAliasWithSecretKey, char[] password) throws KeyStoreException {
-        KeyStore ks = keyStoreFactory.build();
+    public void storeEntry(EntryAliasSecretKeyFactory entryAliasSecretKeyFactory, char[] password) throws KeyStoreException {
         try {
-            ks.setEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(entryAliasWithSecretKey.asSecretKey(password)),
-                    new KeyStore.PasswordProtection(keyStoreFactory.password()));
+            ksa.keyStore().setEntry(entryAliasSecretKeyFactory.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(entryAliasSecretKeyFactory.build(password)),
+                    new KeyStore.PasswordProtection(ksa.keyStorePassword()));
 
-            ks.store(Files.newOutputStream(Paths.get(keyStoreFactory.path())), keyStoreFactory.password());
+            ksa.keyStore().store(Files.newOutputStream(Paths.get(ksa.keyStorePath())), ksa.keyStorePassword());
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | CertificateException |
                  IOException e) {
             throw new RuntimeException(e);
@@ -92,12 +92,15 @@ public class KeyStoreEntryAccess {
     }
 
     public void deleteEntry(String alias) throws KeyStoreException, IOException {
-        KeyStore ks = keyStoreFactory.build();
-        ks.deleteEntry(alias);
+        ksa.keyStore().deleteEntry(alias);
         try {
-            ks.store(Files.newOutputStream(Paths.get(keyStoreFactory.path())), keyStoreFactory.password());
+            ksa.keyStore().store(Files.newOutputStream(Paths.get(ksa.keyStorePath())), ksa.keyStorePassword());
         } catch (NoSuchAlgorithmException | CertificateException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Enumeration<String> aliases() throws KeyStoreException {
+        return ksa.keyStore().aliases();
     }
 }

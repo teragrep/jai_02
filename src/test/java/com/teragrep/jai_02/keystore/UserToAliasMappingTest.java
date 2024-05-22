@@ -92,6 +92,6 @@ public class UserToAliasMappingTest {
     }
 
     private void delete(String username) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray()).deleteKey(username);
+        ksa.deleteKey(username);
     }
 }

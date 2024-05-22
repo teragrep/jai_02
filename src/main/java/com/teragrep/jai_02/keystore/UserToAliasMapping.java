@@ -57,13 +57,13 @@ import java.util.Map;
  */
 public class UserToAliasMapping {
     private final Map<String, String> internalMap;
-    public UserToAliasMapping(KeyStoreFactory keyStoreFactory, Split split) {
+    public UserToAliasMapping(KeyStoreEntryAccess ksea, Split split) {
         this.internalMap = new HashMap<>();
 
         // Initialize map with existing contents
         final Enumeration<String> aliases;
         try {
-            aliases = keyStoreFactory.build().aliases();
+            aliases = ksea.aliases();
         } catch (KeyStoreException e) {
             throw new RuntimeException("KeyStore was not initialized, " +
                     "cannot initialize userToAliasMapping!");

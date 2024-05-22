@@ -52,23 +52,23 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 /**
- * Wraps an EntryAlias object with the SecretKey using
- * the provided algorithm.
+ * Builds a SecretKey for an EntryAlias using the
+ * given algorithm.
  */
-public class EntryAliasWithSecretKey {
+public class EntryAliasSecretKeyFactory {
     private final EntryAlias entryAlias;
     private final KeyAlgorithm keyAlgorithm;
 
-    public EntryAliasWithSecretKey(final EntryAlias entryAlias) {
+    public EntryAliasSecretKeyFactory(final EntryAlias entryAlias) {
         this(entryAlias, new KeyAlgorithm());
     }
 
-    public EntryAliasWithSecretKey(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
+    public EntryAliasSecretKeyFactory(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
         this.entryAlias = entryAlias;
         this.keyAlgorithm = keyAlgorithm;
     }
 
-    public SecretKey asSecretKey(final char[] password) throws InvalidKeySpecException {
+    public SecretKey build(final char[] password) throws InvalidKeySpecException {
         PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
         final SecretKeyFactory secretKeyFactory;
         try {

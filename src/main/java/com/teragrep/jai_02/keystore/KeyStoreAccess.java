@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
@@ -64,12 +65,11 @@ import java.util.List;
  * via the UserToAliasMapping object.
  */
 public class KeyStoreAccess {
-    private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreAccess.class);
-    protected final String keyStorePath;
-    protected final char[] keyStorePassword;
+    private final String keyStorePath;
+    private final char[] keyStorePassword;
     private final EntryAliasFactory entryAliasFactory;
     private final UserToAliasMapping userToAliasMapping;
-    protected KeyStoreFactory keyStoreFactory;
+    private final KeyStore keyStore;
 
     public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
         this(keyStorePath, keyStorePassword, new EntryAliasFactory());
@@ -78,8 +78,8 @@ public class KeyStoreAccess {
         this.entryAliasFactory = entryAliasFactory;
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
-        this.keyStoreFactory = new KeyStoreFactory(keyStorePath, keyStorePassword);
-        this.userToAliasMapping = new UserToAliasMapping(this.keyStoreFactory, this.entryAliasFactory.split());
+        this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
+        this.userToAliasMapping = new UserToAliasMapping(new KeyStoreEntryAccess(this), this.entryAliasFactory.split());
     }
 
     public SecretKey loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
@@ -93,10 +93,10 @@ public class KeyStoreAccess {
         }
 
         // create keyWithSecret object based on KeyString
-        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
+        EntryAliasSecretKeyFactory keyWithSecret = new EntryAliasSecretKeyFactory(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
 
         // Get SecretKey from keyStore and return marked with appropriate algorithm used
-        return new KeyStoreEntryAccess(keyStoreFactory).fetchEntry(keyWithSecret);
+        return new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret);
     }
 
     public void saveKey(final String username, final char[] password) throws KeyStoreException {
@@ -105,8 +105,8 @@ public class KeyStoreAccess {
         if (aliasAlreadyExists) {
             throw new IllegalArgumentException("Alias for username <[" + username + "]> already exists in KeyStore!");
         }
-        EntryAliasWithSecretKey keyWithSecret = new EntryAliasWithSecretKey(entryAliasFactory.build(username));
-        new KeyStoreEntryAccess(keyStoreFactory).storeEntry(keyWithSecret, password);
+        EntryAliasSecretKeyFactory keyWithSecret = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username));
+        new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, password);
 
         // Put user->user:alias mapping and store keyStore in file
         userToAliasMapping.put(keyWithSecret.asEntryAlias().userName().toString(), keyWithSecret.asEntryAlias().toString());
@@ -116,12 +116,12 @@ public class KeyStoreAccess {
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key
         final SecretKey storedKey = loadKey(username);
-        final SecretKey newKey = new EntryAliasWithSecretKey(entryAliasFactory.build(username)).asSecretKey(password);
+        final SecretKey newKey = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username)).build(password);
         return storedKey.equals(newKey);
     }
 
     public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
-        final Enumeration<String> aliases = keyStoreFactory.build().aliases();
+        final Enumeration<String> aliases = keyStore.aliases();
         final List<String> aliasesToRemove = new ArrayList<>();
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
@@ -133,7 +133,7 @@ public class KeyStoreAccess {
             }
         }
 
-        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(keyStoreFactory);
+        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(this);
         for (String alias : aliasesToRemove) {
             ksea.deleteEntry(alias);
         }
@@ -146,7 +146,7 @@ public class KeyStoreAccess {
     private boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
         boolean exists = false;
 
-        final Enumeration<String> aliases = keyStoreFactory.build().aliases();
+        final Enumeration<String> aliases = keyStore.aliases();
         while (aliases.hasMoreElements()) {
             final String alias = aliases.nextElement();
             final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
@@ -159,5 +159,17 @@ public class KeyStoreAccess {
         }
 
         return exists;
+    }
+
+    public KeyStore keyStore() {
+        return this.keyStore;
+    }
+
+    public String keyStorePath() {
+        return this.keyStorePath;
+    }
+
+    public char[] keyStorePassword() {
+        return this.keyStorePassword;
     }
 }

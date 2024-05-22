@@ -70,7 +70,7 @@ public class UserNameValid implements UserName {
         if (o == null || getClass() != o.getClass())
             return false;
         UserNameValid that = (UserNameValid) o;
-        return Objects.equals(username, that.username);
+        return Objects.equals(username.toString(), that.username.toString());
     }
 
     @Override
