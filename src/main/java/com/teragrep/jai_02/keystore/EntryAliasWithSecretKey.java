@@ -80,7 +80,7 @@ public class EntryAliasWithSecretKey {
         return this.keyAlgorithm;
     }
 
-    public EntryAlias asKey() {
+    public EntryAlias asEntryAlias() {
         return this.entryAlias;
     }
 }

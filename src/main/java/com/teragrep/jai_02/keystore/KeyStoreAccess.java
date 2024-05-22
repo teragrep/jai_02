@@ -104,7 +104,7 @@ public class KeyStoreAccess {
         new KeyStoreEntryAccess(keyStoreFactory).storeEntry(keyWithSecret, pw);
 
         // Put user->user:alias mapping and store keyStore in file
-        userToAliasMapping.put(keyWithSecret.asKey().userName().toString(), keyWithSecret.asKey().toString());
+        userToAliasMapping.put(keyWithSecret.asEntryAlias().userName().toString(), keyWithSecret.asEntryAlias().toString());
     }
 
     public boolean verifyKey(final String username, final char[] pw) throws InvalidKeySpecException,

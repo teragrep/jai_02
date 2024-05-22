@@ -65,7 +65,7 @@ public class KeyStoreEntryAccess {
     public SecretKeySpec fetchEntry(EntryAliasWithSecretKey entryAliasWithSecretKey) throws UnrecoverableEntryException, KeyStoreException {
         KeyStore.SecretKeyEntry ske;
         try {
-            ske = (KeyStore.SecretKeyEntry) keyStoreFactory.build().getEntry(entryAliasWithSecretKey.asKey().toString(), new KeyStore.PasswordProtection(keyStoreFactory.password()));
+            ske = (KeyStore.SecretKeyEntry) keyStoreFactory.build().getEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.PasswordProtection(keyStoreFactory.password()));
         } catch (NoSuchAlgorithmException e) {
             // shouldn't happen as algorithms are given as enums instead of strings
             throw new RuntimeException(e);
@@ -76,7 +76,7 @@ public class KeyStoreEntryAccess {
     public void storeEntry(EntryAliasWithSecretKey entryAliasWithSecretKey, char[] pw) throws KeyStoreException {
         KeyStore ks = keyStoreFactory.build();
         try {
-            ks.setEntry(entryAliasWithSecretKey.asKey().toString(), new KeyStore.SecretKeyEntry(entryAliasWithSecretKey.asSecretKey(pw)),
+            ks.setEntry(entryAliasWithSecretKey.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(entryAliasWithSecretKey.asSecretKey(pw)),
                     new KeyStore.PasswordProtection(keyStoreFactory.password()));
 
             ks.store(Files.newOutputStream(Paths.get(keyStoreFactory.path())), keyStoreFactory.password());
