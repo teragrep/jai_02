@@ -45,6 +45,8 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import java.util.Base64;
+
 /**
  * Provides facilities to generate an EntryAlias object from
  * a compliant String.
@@ -67,8 +69,16 @@ public class EntryAliasString {
 
         String userName = fragments[0];
         UserNameValid userNameValid = new UserNameValid(new UserNameImpl(userName, split));
-        Salt salt = new Salt(fragments[1]);
-        int iterationCount = Integer.parseInt(fragments[2]);
+        Salt salt = new Salt(Base64.getDecoder().decode(fragments[1]));
+
+        int iterationCount;
+        try {
+            iterationCount = Integer.parseInt(fragments[2]);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Invalid iterationCount was <[ " + fragments[2] + "]>, expected integer.");
+        }
+
+
 
         return new EntryAlias(userNameValid, salt, iterationCount, split);
     }

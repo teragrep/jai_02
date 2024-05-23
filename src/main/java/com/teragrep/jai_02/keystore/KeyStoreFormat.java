@@ -51,6 +51,10 @@ package com.teragrep.jai_02.keystore;
 public class KeyStoreFormat {
     private final Format format;
     public enum Format {
+        // PKCS12 - Most secure KeyStoreFormat currently on offer
+        // For more info, check out:
+        // https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore
+        // Possibly add more options here in the future
         PKCS12("PKCS12");
 
         private final String format;

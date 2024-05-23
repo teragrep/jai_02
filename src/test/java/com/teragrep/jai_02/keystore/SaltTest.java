@@ -80,7 +80,7 @@ public class SaltTest {
         Salt salt = saltFactory.createSalt();
         String saltString = salt.toString();
 
-        Salt other = new Salt(saltString);
+        Salt other = new Salt(Base64.getDecoder().decode(saltString));
 
         Assertions.assertEquals(salt, other);
     }

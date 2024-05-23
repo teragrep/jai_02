@@ -55,9 +55,6 @@ import java.util.Base64;
 public class Salt {
     private final byte[] salt;
 
-    public Salt(String base64) {
-        this(Base64.getDecoder().decode(base64));
-    }
     public Salt(byte[] salt) {
         this.salt = salt;
     }

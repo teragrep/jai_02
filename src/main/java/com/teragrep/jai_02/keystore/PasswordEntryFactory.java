@@ -45,6 +45,7 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
@@ -67,7 +68,7 @@ public class PasswordEntryFactory {
         this.keyAlgorithm = keyAlgorithm;
     }
 
-    public PasswordEntry build(final char[] password) throws InvalidKeySpecException {
+    public PasswordEntry build(final char[] password)  {
         PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
         final SecretKeyFactory secretKeyFactory;
         try {
@@ -77,9 +78,17 @@ public class PasswordEntryFactory {
             throw new RuntimeException(e);
         }
 
+        final SecretKey secretKey;
+        try {
+             secretKey = secretKeyFactory.generateSecret(pbeKeySpec);
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException("Given key specification was inappropriate for "
+                    + keyAlgorithm.get().toString() + " algorithm\n", e);
+        }
+
         return new PasswordEntry(
                 entryAlias,
-                secretKeyFactory.generateSecret(pbeKeySpec));
+                secretKey);
     }
 
     public KeyAlgorithm keyAlgorithm() {

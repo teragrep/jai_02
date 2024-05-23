@@ -48,6 +48,7 @@ package com.teragrep.jai_02.keystore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -63,16 +64,9 @@ public class KeyStoreFactory {
     private final KeyStoreFormat keyStoreFormat;
     private final String path;
     private final char[] pw;
-    public KeyStoreFactory() {
-        this(new KeyStoreFormat(), null, null);
-    }
 
     public KeyStoreFactory(String path, char[] pw) {
         this(new KeyStoreFormat(), path, pw);
-    }
-
-    public KeyStoreFactory(KeyStoreFormat ka) {
-        this(ka, null, null);
     }
 
     public KeyStoreFactory(KeyStoreFormat ka, String path, char[] pw) {
@@ -83,12 +77,19 @@ public class KeyStoreFactory {
 
     public KeyStore build() {
         final KeyStore ks;
+
+        if (path == null || path.isEmpty()) {
+            throw new IllegalStateException("KeyStorePath is required, cannot be null or empty.");
+        }
+
         try {
             ks = KeyStore.getInstance(keyStoreFormat.toString());
-            if (path == null || Files.notExists(Paths.get(path), LinkOption.NOFOLLOW_LINKS)) {
+            // If the path points to a file that doesn't exist, initialize an empty keyStore
+            final Path pathToKeyStore = Paths.get(path);
+            if (Files.notExists(pathToKeyStore, LinkOption.NOFOLLOW_LINKS)) {
                 ks.load(null, null);
             } else {
-                ks.load(Files.newInputStream(Paths.get(path)), pw);
+                ks.load(Files.newInputStream(pathToKeyStore), pw);
             }
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {

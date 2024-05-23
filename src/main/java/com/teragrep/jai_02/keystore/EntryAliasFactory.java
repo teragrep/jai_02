@@ -57,6 +57,10 @@ public class EntryAliasFactory {
         this(new SaltFactory(), new Split(':'), 100_000);
     }
 
+    public EntryAliasFactory(int iterationCount) {
+        this(new SaltFactory(), new Split(':'), iterationCount);
+    }
+
     public EntryAliasFactory(SaltFactory saltFactory, Split split, int iterationCount) {
         this.saltFactory = saltFactory;
         this.split = split;

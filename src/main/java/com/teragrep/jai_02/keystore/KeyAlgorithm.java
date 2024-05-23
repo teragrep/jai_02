@@ -52,6 +52,8 @@ public class KeyAlgorithm {
     private final KeySecretAlgorithm keySecretAlgorithm;
 
     public enum KeySecretAlgorithm {
+        // Default algorithm for SecretKey
+        // Another options can be added in the future
         PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
 
         private final String algo;

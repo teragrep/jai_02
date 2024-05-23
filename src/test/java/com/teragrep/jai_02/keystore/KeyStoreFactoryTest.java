@@ -48,25 +48,27 @@ package com.teragrep.jai_02.keystore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 public class KeyStoreFactoryTest {
     @Test
-    public void keyStoreFactoryTest() throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        KeyStoreFactory ksf = new KeyStoreFactory();
+    public void keyStoreFactoryTest() {
+        final String path = "target/ksf-test.p12";
+        final char[] pw = "pass".toCharArray();
+
+        KeyStoreFactory ksf = new KeyStoreFactory(path, pw);
         KeyStore ks = ksf.build();
 
-        KeyStore expected = KeyStore.getInstance("PKCS12");
-        expected.load(null, null);
+        Assertions.assertDoesNotThrow(() -> {
+            KeyStore expected = KeyStore.getInstance("PKCS12");
+            expected.load(null, null);
 
-        // should be equal
-        Assertions.assertEquals(expected.getClass(), ks.getClass());
-        Assertions.assertEquals(expected.getType(), ks.getType());
-        Assertions.assertEquals(expected.getProvider(), ks.getProvider());
-        Assertions.assertEquals(expected.size(), ks.size());
+            // should be equal
+            Assertions.assertEquals(expected.getClass(), ks.getClass());
+            Assertions.assertEquals(expected.getType(), ks.getType());
+            Assertions.assertEquals(expected.getProvider(), ks.getProvider());
+            Assertions.assertEquals(expected.size(), ks.size());
+        });
+
     }
 }

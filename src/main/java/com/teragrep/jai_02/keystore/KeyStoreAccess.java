@@ -80,12 +80,10 @@ public class KeyStoreAccess {
 
     public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // TODO create a cache of requests -> success/fail
-        final String alias;
-        if (userToAliasMapping.has(username)) {
-            alias = userToAliasMapping.get(username);
-        } else {
+        if (!userToAliasMapping.has(username)) {
             throw new InvalidKeyException("Username <[" + username + "]> was not found in the map!");
         }
+        final String alias = userToAliasMapping.get(username);
 
         PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
 
@@ -94,8 +92,8 @@ public class KeyStoreAccess {
              ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyWithSecret.asEntryAlias().toString(),
                     new KeyStore.PasswordProtection(keyStorePassword));
         } catch (NoSuchAlgorithmException e) {
-            // does not happen
-            throw new RuntimeException(e);
+            // does not happen since algorithms are defined via enums
+            throw new RuntimeException("Invalid algorithm provided for KeyStore", e);
         }
 
         return new PasswordEntry(
@@ -116,8 +114,12 @@ public class KeyStoreAccess {
             keyStore.setEntry(keyWithSecret.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.build(password).secretKey()),
                     new KeyStore.PasswordProtection(keyStorePassword));
             keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
-        } catch (InvalidKeySpecException | CertificateException | IOException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Invalid algorithm provided: ", e);
+        } catch (CertificateException e) {
+            throw new RuntimeException("Certificates could not be stored: ", e);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error storing keyStore: ", e);
         }
 
         // Put user->user:alias mapping and store keyStore in file
@@ -145,13 +147,16 @@ public class KeyStoreAccess {
             }
         }
 
+        // remove entries from in-memory keyStore
         for (String alias : aliasesToRemove) {
             keyStore.deleteEntry(alias);
-            try {
-                keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
-            } catch (NoSuchAlgorithmException | CertificateException e) {
-                throw new RuntimeException(e);
-            }
+        }
+
+        // commit changes to disk
+        try {
+            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
+        } catch (NoSuchAlgorithmException | CertificateException e) {
+            throw new RuntimeException("Error storing keyStore after alias deletion: ", e);
         }
 
         userToAliasMapping.remove(usernameToRemove);

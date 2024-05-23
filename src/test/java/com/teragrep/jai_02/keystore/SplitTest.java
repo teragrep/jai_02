@@ -76,4 +76,11 @@ public class SplitTest {
         Split other = new Split(':');
         Assertions.assertEquals(split, other);
     }
+
+    @Test
+    public void testSplitNotEquals() {
+        Split split = new Split(':');
+        Split other = new Split(';');
+        Assertions.assertNotEquals(split, other);
+    }
 }

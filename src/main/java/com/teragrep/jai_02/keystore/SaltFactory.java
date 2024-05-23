@@ -55,6 +55,7 @@ public class SaltFactory {
     private final int length;
 
     public SaltFactory() {
+        // Default salt length 20 bytes
         this(20);
     }
 

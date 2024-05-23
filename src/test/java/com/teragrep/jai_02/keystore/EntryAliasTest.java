@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
 public class EntryAliasTest {
 
     @Test
-    public void testKey () {
+    public void testEntryAliasAndEntryAliasStringEquals() {
         String name = "userish";
 
         Split split = new Split(':');
@@ -62,7 +62,7 @@ public class EntryAliasTest {
         SaltFactory saltFactory = new SaltFactory();
         Salt salt = saltFactory.createSalt();
 
-        int iterationCount = 100000;
+        int iterationCount = 100_000;
 
         EntryAlias entryAlias = new EntryAlias(userNameValid, salt, iterationCount, split);
 
@@ -70,5 +70,40 @@ public class EntryAliasTest {
         EntryAlias other = entryAliasString.toEntryAlias();
 
         Assertions.assertEquals(entryAlias, other);
+    }
+
+    @Test
+    public void testEntryAliasToString() {
+        String name = "userish";
+
+        Split split = new Split(':');
+        UserNameImpl username = new UserNameImpl(name, split);
+        UserNameValid userNameValid = username.asValid();
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+        int iterationCount = 100_000;
+
+        EntryAlias entryAlias = new EntryAlias(userNameValid, salt, iterationCount, split);
+        Assertions.assertEquals(name + split + salt + split + iterationCount, entryAlias.toString());
+    }
+
+    @Test
+    public void testEntryAliasStringToEntryAlias() {
+        String name = "userish";
+
+        Split split = new Split(':');
+        SaltFactory saltFactory = new SaltFactory();
+        Salt salt = saltFactory.createSalt();
+
+        int iterationCount = 100_000;
+
+        String str = name + split + salt + split + iterationCount;
+        EntryAliasString entryAliasString = new EntryAliasString(str, split);
+        EntryAlias ea = entryAliasString.toEntryAlias();
+
+        Assertions.assertEquals(name, ea.userName().toString());
+        Assertions.assertEquals(salt, ea.salt());
+        Assertions.assertEquals(iterationCount, ea.iterationCount());
+        Assertions.assertEquals(str, ea.toString());
     }
 }

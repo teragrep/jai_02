@@ -50,10 +50,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
-import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
 
 public class UserToAliasMappingTest {
     private static String keyStorePath = "target/keystore.p12";
@@ -68,28 +65,36 @@ public class UserToAliasMappingTest {
     }
 
     @Test
-    public void saveAndReloadTest() throws KeyStoreException, UnrecoverableEntryException, InvalidKeyException, IOException {
-        delete(userName);
-        SecretKey originalKey = save();
-        SecretKey newKey = load();
-        Assertions.assertEquals(originalKey, newKey);
+    public void saveAndReloadTest() {
+        Assertions.assertDoesNotThrow(() -> {
+            // Delete any pre-existing saves for username and save again
+            ksa.deleteKey(userName);
+            ksa.saveKey(userName, userPassWord.toCharArray());
+            // Check that 'loadKey()' loads the same key even though called twice
+            SecretKey originalKey = ksa.loadKey(userName).secretKey();
+            SecretKey newKey = ksa.loadKey(userName).secretKey();
+            Assertions.assertEquals(originalKey, newKey);
+        });
     }
 
     @Test
     public void saveFailTest() {
-        Assertions.assertThrows(IllegalArgumentException.class, this::save, "");
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.deleteKey(userName);
+            ksa.saveKey(userName, userPassWord.toCharArray());
+        });
+
+        // Should throw on second save with same username
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ksa.saveKey(userName, userPassWord.toCharArray()));
     }
 
-    private SecretKey save() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        ksa.saveKey(userName, userPassWord.toCharArray());
-        return load();
-    }
+    @Test
+    public void saveNoAliasFailTest() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.deleteKey(userName);
+        });
 
-    private SecretKey load() throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return ksa.loadKey(userName).secretKey();
-    }
-
-    private void delete(String username) throws KeyStoreException, IOException {
-        ksa.deleteKey(username);
+        Assertions.assertThrows(InvalidKeyException.class, () -> ksa.loadKey(userName));
     }
 }
