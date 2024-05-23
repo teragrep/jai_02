@@ -46,11 +46,12 @@
 package com.teragrep.jai_02.keystore;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
@@ -74,10 +75,10 @@ public class KeyStoreAccess {
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
         this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
-        this.userToAliasMapping = new UserToAliasMapping(new KeyStoreEntryAccess(this), this.entryAliasFactory.split());
+        this.userToAliasMapping = new UserToAliasMapping(keyStore, this.entryAliasFactory.split());
     }
 
-    public EntryAliasValuePair loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+    public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // TODO create a cache of requests -> success/fail
         final String alias;
         if (userToAliasMapping.has(username)) {
@@ -86,10 +87,20 @@ public class KeyStoreAccess {
             throw new InvalidKeyException("Username <[" + username + "]> was not found in the map!");
         }
 
-        EntryAliasSecretKeyFactory keyWithSecret = new EntryAliasSecretKeyFactory(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
-        return new EntryAliasValuePair(
+        PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
+
+        final KeyStore.SecretKeyEntry ske;
+        try {
+             ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyWithSecret.asEntryAlias().toString(),
+                    new KeyStore.PasswordProtection(keyStorePassword));
+        } catch (NoSuchAlgorithmException e) {
+            // does not happen
+            throw new RuntimeException(e);
+        }
+
+        return new PasswordEntry(
                 keyWithSecret.asEntryAlias(),
-                new KeyStoreEntryAccess(this).fetchEntry(keyWithSecret)
+                new SecretKeySpec(ske.getSecretKey().getEncoded(), keyWithSecret.keyAlgorithm().get().toString())
         );
     }
 
@@ -99,8 +110,15 @@ public class KeyStoreAccess {
         if (aliasAlreadyExists) {
             throw new IllegalArgumentException("Alias for username <[" + username + "]> already exists in KeyStore!");
         }
-        EntryAliasSecretKeyFactory keyWithSecret = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username));
-        new KeyStoreEntryAccess(this).storeEntry(keyWithSecret, password);
+
+        PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(entryAliasFactory.build(username));
+        try {
+            keyStore.setEntry(keyWithSecret.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.build(password).secretKey()),
+                    new KeyStore.PasswordProtection(keyStorePassword));
+            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
+        } catch (InvalidKeySpecException | CertificateException | IOException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
         // Put user->user:alias mapping and store keyStore in file
         userToAliasMapping.put(keyWithSecret.asEntryAlias().userName().toString(), keyWithSecret.asEntryAlias().toString());
@@ -109,8 +127,8 @@ public class KeyStoreAccess {
     public boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key with same salt
-        final EntryAliasValuePair storedKeyPair = loadKey(username);
-        final SecretKey newKey = new EntryAliasSecretKeyFactory(entryAliasFactory.build(username, storedKeyPair.entryAlias().salt())).build(password);
+        final PasswordEntry storedKeyPair = loadKey(username);
+        final SecretKey newKey = new PasswordEntryFactory(entryAliasFactory.build(username, storedKeyPair.entryAlias().salt())).build(password).secretKey();
         return storedKeyPair.secretKey().equals(newKey);
     }
 
@@ -127,9 +145,13 @@ public class KeyStoreAccess {
             }
         }
 
-        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(this);
         for (String alias : aliasesToRemove) {
-            ksea.deleteEntry(alias);
+            keyStore.deleteEntry(alias);
+            try {
+                keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
+            } catch (NoSuchAlgorithmException | CertificateException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         userToAliasMapping.remove(usernameToRemove);
@@ -153,17 +175,5 @@ public class KeyStoreAccess {
         }
 
         return exists;
-    }
-
-    public KeyStore keyStore() {
-        return this.keyStore;
-    }
-
-    public String keyStorePath() {
-        return this.keyStorePath;
-    }
-
-    public char[] keyStorePassword() {
-        return this.keyStorePassword;
     }
 }

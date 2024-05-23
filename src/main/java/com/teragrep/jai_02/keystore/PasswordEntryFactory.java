@@ -45,33 +45,48 @@
  */
 package com.teragrep.jai_02.keystore;
 
-import org.junit.jupiter.api.Test;
-
-import javax.crypto.SecretKey;
-import java.security.KeyStoreException;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+/**
+ * Builds a SecretKey for an EntryAlias using the
+ * given algorithm.
+ */
+public class PasswordEntryFactory {
+    private final EntryAlias entryAlias;
+    private final KeyAlgorithm keyAlgorithm;
 
-public class KeyStoreEntryTest {
-    private static String keyStorePath = "target/keystore.p12";
-    private static String keyStorePassword = "changeit";
-    private static String userName = "trusted-12";
-    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
-    @Test
-    public void keyStoreEntryTest() throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyStoreEntryAccess ksea = new KeyStoreEntryAccess(new KeyStoreAccess(
-                keyStorePath, keyStorePassword.toCharArray()
-        ));
+    public PasswordEntryFactory(final EntryAlias entryAlias) {
+        this(entryAlias, new KeyAlgorithm());
+    }
 
-        EntryAliasSecretKeyFactory ks = new EntryAliasSecretKeyFactory(new EntryAliasFactory().build(userName));
-        ksea.storeEntry(ks, userPassWord.toCharArray());
+    public PasswordEntryFactory(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
+        this.entryAlias = entryAlias;
+        this.keyAlgorithm = keyAlgorithm;
+    }
 
-        SecretKey fetchedSecretKey = ksea.fetchEntry(ks);
-        SecretKey originalSecretKey = ks.build(userPassWord.toCharArray());
+    public PasswordEntry build(final char[] password) throws InvalidKeySpecException {
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
+        final SecretKeyFactory secretKeyFactory;
+        try {
+            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.get().toString());
+        } catch (NoSuchAlgorithmException e) {
+            // Should not happen as the algorithms are defined as known-good enums
+            throw new RuntimeException(e);
+        }
 
-        assertEquals(originalSecretKey, fetchedSecretKey);
+        return new PasswordEntry(
+                entryAlias,
+                secretKeyFactory.generateSecret(pbeKeySpec));
+    }
+
+    public KeyAlgorithm keyAlgorithm() {
+        return this.keyAlgorithm;
+    }
+
+    public EntryAlias asEntryAlias() {
+        return this.entryAlias;
     }
 }

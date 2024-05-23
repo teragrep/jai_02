@@ -46,45 +46,24 @@
 package com.teragrep.jai_02.keystore;
 
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 /**
- * Builds a SecretKey for an EntryAlias using the
- * given algorithm.
+ * Key-Value pair of EntryAlias and SecretKey.
  */
-public class EntryAliasSecretKeyFactory {
+public class PasswordEntry {
     private final EntryAlias entryAlias;
-    private final KeyAlgorithm keyAlgorithm;
+    private final SecretKey secretKey;
 
-    public EntryAliasSecretKeyFactory(final EntryAlias entryAlias) {
-        this(entryAlias, new KeyAlgorithm());
-    }
-
-    public EntryAliasSecretKeyFactory(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
+    public PasswordEntry(EntryAlias entryAlias, SecretKey secretKey) {
         this.entryAlias = entryAlias;
-        this.keyAlgorithm = keyAlgorithm;
+        this.secretKey = secretKey;
     }
 
-    public SecretKey build(final char[] password) throws InvalidKeySpecException {
-        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
-        final SecretKeyFactory secretKeyFactory;
-        try {
-            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.get().toString());
-        } catch (NoSuchAlgorithmException e) {
-            // Should not happen as the algorithms are defined as known-good enums
-            throw new RuntimeException(e);
-        }
-        return secretKeyFactory.generateSecret(pbeKeySpec);
+    public EntryAlias entryAlias() {
+        return entryAlias;
     }
 
-    public KeyAlgorithm keyAlgorithm() {
-        return this.keyAlgorithm;
-    }
-
-    public EntryAlias asEntryAlias() {
-        return this.entryAlias;
+    public SecretKey secretKey() {
+        return secretKey;
     }
 }

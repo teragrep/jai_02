@@ -103,12 +103,4 @@ public class KeyStoreFactory {
 
         return ks;
     }
-
-    public char[] password() {
-        return this.pw;
-    }
-
-    public String path() {
-        return this.path;
-    }
 }

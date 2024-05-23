@@ -53,9 +53,7 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 
 public class UserToAliasMappingTest {
     private static String keyStorePath = "target/keystore.p12";
