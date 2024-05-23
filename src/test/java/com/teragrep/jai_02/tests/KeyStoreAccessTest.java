@@ -47,6 +47,7 @@
 package com.teragrep.jai_02.tests;
 
 import com.teragrep.jai_02.keystore.KeyStoreAccess;
+import com.teragrep.jai_02.keystore.KeyStoreFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,9 +55,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class KeyStoreAccessTest {
@@ -68,8 +67,8 @@ public class KeyStoreAccessTest {
 
     private static KeyStoreAccess ksa;
     @BeforeAll
-    public static void prepare() throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+    public static void prepare() throws KeyStoreException, IOException {
+        ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
         ksa.deleteKey(userName);
     }
 

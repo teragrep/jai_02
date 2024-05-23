@@ -67,14 +67,14 @@ public class KeyStoreAccess {
     private final UserToAliasMapping userToAliasMapping;
     private final KeyStore keyStore;
 
-    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword) {
-        this(keyStorePath, keyStorePassword, new EntryAliasFactory());
+    public KeyStoreAccess(final KeyStore keyStore, final String keyStorePath, final char[] keyStorePassword) {
+        this(keyStore, keyStorePath, keyStorePassword, new EntryAliasFactory());
     }
-    public KeyStoreAccess(final String keyStorePath, final char[] keyStorePassword, final EntryAliasFactory entryAliasFactory) {
+    public KeyStoreAccess(final KeyStore keyStore, final String keyStorePath, final char[] keyStorePassword, final EntryAliasFactory entryAliasFactory) {
         this.entryAliasFactory = entryAliasFactory;
         this.keyStorePassword = keyStorePassword;
         this.keyStorePath = keyStorePath;
-        this.keyStore = new KeyStoreFactory(keyStorePath, keyStorePassword).build();
+        this.keyStore = keyStore;
         this.userToAliasMapping = new UserToAliasMapping(keyStore, this.entryAliasFactory.split());
     }
 

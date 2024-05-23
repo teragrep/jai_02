@@ -64,7 +64,7 @@ public class UserToAliasMappingTest {
 
     @BeforeAll
     public static void prepare() {
-        ksa = new KeyStoreAccess(keyStorePath, keyStorePassword.toCharArray());
+        ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
     }
 
     @Test
