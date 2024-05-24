@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Provides access to the KeyStore, such as loading, saving
@@ -73,7 +74,7 @@ public class CachingKeyStoreAccess {
     // cache
     private final LoadingCache<UserNameAndPassword, Boolean> loadingCache;
 
-    public CachingKeyStoreAccess(final KeyStoreAccess keyStoreAccess) {
+    public CachingKeyStoreAccess(final KeyStoreAccess keyStoreAccess, final long secs) {
         this.keyStoreAccess = keyStoreAccess;
 
         CacheLoader<UserNameAndPassword, Boolean> cacheLoader = new CacheLoader<UserNameAndPassword, Boolean>() {
@@ -84,7 +85,7 @@ public class CachingKeyStoreAccess {
             }
         };
 
-        this.loadingCache = CacheBuilder.newBuilder().build(cacheLoader);
+        this.loadingCache = CacheBuilder.newBuilder().refreshAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
 
     }
 

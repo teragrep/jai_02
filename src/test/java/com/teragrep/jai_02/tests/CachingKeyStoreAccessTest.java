@@ -73,7 +73,7 @@ public class CachingKeyStoreAccessTest {
         cksa = new CachingKeyStoreAccess(
                 new KeyStoreAccess(
                         new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                        keyStorePath, keyStorePassword.toCharArray()));
+                        keyStorePath, keyStorePassword.toCharArray()), 10L);
 
         cksa.deleteKey(userName);
     }
