@@ -43,60 +43,22 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
+package com.teragrep.jai_02.keystore;
 
-package com.teragrep.jai_02.tests;
+public class UserNameAndPassword {
+    private final String username;
+    private final char[] password;
 
-import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreFactory;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
-
-public class CachingKeyStoreAccessTest {
-
-    private static String keyStorePath = "target/keystore.p12";
-    private static String keyStorePassword = "changeit";
-    private static String userName = "trusted-12";
-    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
-
-    private static CachingKeyStoreAccess cksa;
-    @BeforeAll
-    public static void prepare() throws KeyStoreException, IOException {
-        cksa = new CachingKeyStoreAccess(
-                new KeyStoreAccess(
-                        new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                        keyStorePath, keyStorePassword.toCharArray()));
-
-        cksa.deleteKey(userName);
+    public UserNameAndPassword(String username, char[] password) {
+        this.username = username;
+        this.password = password;
     }
 
-    public void save() throws KeyStoreException {
-        cksa.saveKey(
-                userName,
-                userPassWord.toCharArray());
+    public String username() {
+        return username;
     }
 
-    public void verify() throws ExecutionException {
-
-        boolean authOk = cksa.verifyKey(
-                userName,
-                userPassWord.toCharArray());
-
-        Assertions.assertTrue(authOk);
-    }
-
-    @Test
-    public void saveAndVerifyTest() throws KeyStoreException, ExecutionException {
-        save();
-        verify();
+    public char[] password() {
+        return password;
     }
 }
-

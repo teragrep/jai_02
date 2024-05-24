@@ -60,6 +60,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Provides access to the KeyStore, such as loading, saving
@@ -70,16 +71,16 @@ public class CachingKeyStoreAccess {
     private final KeyStoreAccess keyStoreAccess;
 
     // cache
-    private final LoadingCache<String, PasswordEntry> loadingCache;
+    private final LoadingCache<UserNameAndPassword, Boolean> loadingCache;
 
     public CachingKeyStoreAccess(final KeyStoreAccess keyStoreAccess) {
         this.keyStoreAccess = keyStoreAccess;
 
-        CacheLoader<String, PasswordEntry> cacheLoader = new CacheLoader<String, PasswordEntry>() {
+        CacheLoader<UserNameAndPassword, Boolean> cacheLoader = new CacheLoader<UserNameAndPassword, Boolean>() {
 
             @Override
-            public PasswordEntry load(String username) throws Exception {
-                return keyStoreAccess.loadKey(username);
+            public Boolean load(UserNameAndPassword pe) throws Exception {
+                return keyStoreAccess.verifyKey(pe.username(), pe.password());
             }
         };
 
@@ -88,16 +89,15 @@ public class CachingKeyStoreAccess {
     }
 
     public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return loadingCache.getIfPresent(username);
+        return keyStoreAccess.loadKey(username);
     }
 
     public void saveKey(final String username, final char[] password) throws KeyStoreException {
         keyStoreAccess.saveKey(username, password);
     }
 
-    public boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
-            UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return keyStoreAccess.verifyKey(username, password);
+    public boolean verifyKey(final String username, final char[] password) throws ExecutionException {
+        return loadingCache.get(new UserNameAndPassword(username, password));
     }
 
     public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
