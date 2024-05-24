@@ -88,12 +88,7 @@ public class CachingKeyStoreAccess {
     }
 
     public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        PasswordEntry pe = loadingCache.getIfPresent(username);
-        if (pe == null) {
-            // not in cache, load from store
-            pe = keyStoreAccess.loadKey(username);
-        }
-        return pe;
+        return loadingCache.getIfPresent(username);
     }
 
     public void saveKey(final String username, final char[] password) throws KeyStoreException {
