@@ -164,7 +164,7 @@ public class KeyStoreAccess {
         return aliasesToRemove.size();
     }
 
-    private boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
+    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
         boolean exists = false;
 
         final Enumeration<String> aliases = keyStore.aliases();
