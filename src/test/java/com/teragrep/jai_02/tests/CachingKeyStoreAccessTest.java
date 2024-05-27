@@ -69,32 +69,37 @@ public class CachingKeyStoreAccessTest {
 
     private static CachingKeyStoreAccess cksa;
     @BeforeAll
-    public static void prepare() throws KeyStoreException, IOException {
-        cksa = new CachingKeyStoreAccess(
-                new KeyStoreAccess(
-                        new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                        keyStorePath, keyStorePassword.toCharArray()), 10L);
+    public static void prepare() {
+        Assertions.assertDoesNotThrow(() -> {
+            cksa = new CachingKeyStoreAccess(
+                    new KeyStoreAccess(
+                            new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                            keyStorePath, keyStorePassword.toCharArray()), 10L);
 
-        cksa.deleteKey(userName);
+            cksa.deleteKey(userName);
+        });
     }
 
-    public void save() throws KeyStoreException {
-        cksa.saveKey(
-                userName,
-                userPassWord.toCharArray());
+    public void save() {
+        Assertions.assertDoesNotThrow(() -> {
+            cksa.saveKey(
+                    userName,
+                    userPassWord.toCharArray());
+        });
     }
 
-    public void verify() throws ExecutionException {
+    public void verify() {
+        Assertions.assertDoesNotThrow(() -> {
+            boolean authOk = cksa.verifyKey(
+                    userName,
+                    userPassWord.toCharArray());
 
-        boolean authOk = cksa.verifyKey(
-                userName,
-                userPassWord.toCharArray());
-
-        Assertions.assertTrue(authOk);
+            Assertions.assertTrue(authOk);
+        });
     }
 
     @Test
-    public void saveAndVerifyTest() throws KeyStoreException, ExecutionException {
+    public void saveAndVerifyTest() {
         save();
         verify();
     }

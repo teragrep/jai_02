@@ -67,30 +67,33 @@ public class KeyStoreAccessTest {
 
     private static KeyStoreAccess ksa;
     @BeforeAll
-    public static void prepare() throws KeyStoreException, IOException {
-        ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
-        ksa.deleteKey(userName);
+    public static void prepare() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
+            ksa.deleteKey(userName);
+        });
     }
 
-    public void save() throws KeyStoreException {
-        ksa.saveKey(
-                userName,
-                userPassWord.toCharArray());
+    public void save() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.saveKey(
+                    userName,
+                    userPassWord.toCharArray());
+        });
     }
 
-    public void verify() throws UnrecoverableEntryException, KeyStoreException,
-            InvalidKeySpecException, InvalidKeyException {
+    public void verify() {
+        Assertions.assertDoesNotThrow(() -> {
+            boolean authOk = ksa.verifyKey(
+                    userName,
+                    userPassWord.toCharArray());
 
-        boolean authOk = ksa.verifyKey(
-                userName,
-                userPassWord.toCharArray());
-
-        Assertions.assertTrue(authOk);
+            Assertions.assertTrue(authOk);
+        });
     }
 
     @Test
-    public void saveAndVerifyTest() throws KeyStoreException,
-            InvalidKeySpecException, UnrecoverableEntryException, InvalidKeyException {
+    public void saveAndVerifyTest() {
         save();
         verify();
     }
