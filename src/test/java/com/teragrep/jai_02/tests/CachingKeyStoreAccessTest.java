@@ -46,6 +46,7 @@
 
 package com.teragrep.jai_02.tests;
 
+import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
 import com.teragrep.jai_02.keystore.KeyStoreAccess;
 import com.teragrep.jai_02.keystore.KeyStoreFactory;
 import org.junit.jupiter.api.Assertions;
@@ -57,26 +58,31 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.concurrent.ExecutionException;
 
-public class KeyStoreAccessTest {
+public class CachingKeyStoreAccessTest {
 
     private static String keyStorePath = "target/keystore.p12";
     private static String keyStorePassword = "changeit";
     private static String userName = "trusted-12";
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
 
-    private static KeyStoreAccess ksa;
+    private static CachingKeyStoreAccess cksa;
     @BeforeAll
     public static void prepare() {
         Assertions.assertDoesNotThrow(() -> {
-            ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
-            ksa.deleteKey(userName);
+            cksa = new CachingKeyStoreAccess(
+                    new KeyStoreAccess(
+                            new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                            keyStorePath, keyStorePassword.toCharArray()), 10L);
+
+            cksa.deleteKey(userName);
         });
     }
 
     public void save() {
         Assertions.assertDoesNotThrow(() -> {
-            ksa.saveKey(
+            cksa.saveKey(
                     userName,
                     userPassWord.toCharArray());
         });
@@ -84,7 +90,7 @@ public class KeyStoreAccessTest {
 
     public void verify() {
         Assertions.assertDoesNotThrow(() -> {
-            boolean authOk = ksa.verifyKey(
+            boolean authOk = cksa.verifyKey(
                     userName,
                     userPassWord.toCharArray());
 
