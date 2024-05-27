@@ -105,7 +105,7 @@ public class CachingKeyStoreAccess {
         return keyStoreAccess.deleteKey(usernameToRemove);
     }
 
-    private boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
+    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
        return keyStoreAccess.checkForExistingAlias(usernameToCheck);
     }
 }
