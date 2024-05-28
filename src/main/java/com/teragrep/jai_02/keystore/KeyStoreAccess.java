@@ -60,7 +60,7 @@ import java.util.*;
  * and deleting entries. Keeps track of the username->alias mapping
  * via the UserToAliasMapping object.
  */
-public class KeyStoreAccess {
+public class KeyStoreAccess implements IKeyStoreAccess {
     private final String keyStorePath;
     private final char[] keyStorePassword;
     private final EntryAliasFactory entryAliasFactory;
@@ -180,5 +180,13 @@ public class KeyStoreAccess {
         }
 
         return exists;
+    }
+
+    public String keyStorePath() {
+        return keyStorePath;
+    }
+
+    public char[] keyStorePassword() {
+        return keyStorePassword;
     }
 }

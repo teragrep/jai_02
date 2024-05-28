@@ -49,71 +49,64 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Provides access to the KeyStore, such as loading, saving
- * and deleting entries. Keeps track of the username->alias mapping
- * via the UserToAliasMapping object.
- */
-public class CachingKeyStoreAccess implements IKeyStoreAccess {
-    private final IKeyStoreAccess keyStoreAccess;
+public class ReloadingKeyStoreAccess implements IKeyStoreAccess {
+    private IKeyStoreAccess ksa;
+    private final LoadingCache<Long, IKeyStoreAccess> loadingCache;
+    public ReloadingKeyStoreAccess(IKeyStoreAccess ksa, long secs) {
+        this.ksa = ksa;
 
-    // cache
-    private final LoadingCache<UserNameAndPassword, Boolean> loadingCache;
-
-    public CachingKeyStoreAccess(final IKeyStoreAccess keyStoreAccess, final long secs) {
-        this.keyStoreAccess = keyStoreAccess;
-
-        CacheLoader<UserNameAndPassword, Boolean> cacheLoader = new CacheLoader<UserNameAndPassword, Boolean>() {
-
+        CacheLoader<Long, IKeyStoreAccess> cacheLoader = new CacheLoader<Long, IKeyStoreAccess>() {
             @Override
-            public Boolean load(UserNameAndPassword pe) throws Exception {
-                return keyStoreAccess.verifyKey(pe.username(), pe.password());
+            public IKeyStoreAccess load(Long key) throws Exception {
+                return new KeyStoreAccess(
+                        new KeyStoreFactory(ksa.keyStorePath(), ksa.keyStorePassword()).build(),
+                        ksa.keyStorePath(), ksa.keyStorePassword()
+                );
             }
         };
 
-        this.loadingCache = CacheBuilder.newBuilder().refreshAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
-
+        this.loadingCache = CacheBuilder
+                .newBuilder()
+                .maximumSize(1L)
+                .refreshAfterWrite(secs, TimeUnit.SECONDS)
+                .build(cacheLoader);
     }
 
-    public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException, ExecutionException {
-        return keyStoreAccess.loadKey(username);
+    public PasswordEntry loadKey(final String username) throws ExecutionException, UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+        return loadingCache.get(0L).loadKey(username);
     }
 
-    public void saveKey(final String username, final char[] password) throws KeyStoreException, ExecutionException {
-        keyStoreAccess.saveKey(username, password);
+    public void saveKey(final String username, final char[] password) throws ExecutionException, KeyStoreException {
+        loadingCache.get(0L).saveKey(username, password);
     }
 
-    public boolean verifyKey(final String username, final char[] password) throws ExecutionException {
-        return loadingCache.get(new UserNameAndPassword(username, password));
+    public boolean verifyKey(final String username, final char[] password) throws ExecutionException, UnrecoverableEntryException, InvalidKeySpecException, KeyStoreException, InvalidKeyException {
+        return loadingCache.get(0L).verifyKey(username, password);
     }
 
-    public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException, ExecutionException {
-        return keyStoreAccess.deleteKey(usernameToRemove);
+    public int deleteKey(final String usernameToRemove) throws ExecutionException, KeyStoreException, IOException {
+        return loadingCache.get(0L).deleteKey(usernameToRemove);
     }
 
     public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException, ExecutionException {
-       return keyStoreAccess.checkForExistingAlias(usernameToCheck);
+        return loadingCache.get(0L).checkForExistingAlias(usernameToCheck);
     }
 
+    @Override
     public String keyStorePath() {
-        return keyStoreAccess.keyStorePath();
+        return ksa.keyStorePath();
     }
 
+    @Override
     public char[] keyStorePassword() {
-        return keyStoreAccess.keyStorePassword();
+        return ksa.keyStorePassword();
     }
 }
