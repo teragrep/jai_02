@@ -49,66 +49,85 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Provides access to the KeyStore, such as loading, saving
- * and deleting entries. Keeps track of the username->alias mapping
- * via the UserToAliasMapping object.
- */
-public class CachingKeyStoreAccess implements KeyStoreAccess {
-    private final KeyStoreAccess keyStoreAccess;
+public class ReloadingKeyStoreAccess implements KeyStoreAccess {
+    private KeyStoreAccess ksa;
+    private final LoadingCache<Long, KeyStoreAccess> loadingCache;
+    public ReloadingKeyStoreAccess(KeyStoreAccess ksa, long secs) {
+        this.ksa = ksa;
 
-    // cache
-    private final LoadingCache<UserNameAndPassword, Boolean> loadingCache;
-
-    public CachingKeyStoreAccess(final KeyStoreAccess keyStoreAccess, final long secs) {
-        this.keyStoreAccess = keyStoreAccess;
-
-        CacheLoader<UserNameAndPassword, Boolean> cacheLoader = new CacheLoader<UserNameAndPassword, Boolean>() {
-
+        CacheLoader<Long, KeyStoreAccess> cacheLoader = new CacheLoader<Long, KeyStoreAccess>() {
             @Override
-            public Boolean load(UserNameAndPassword pe) throws Exception {
-                return keyStoreAccess.verifyKey(pe.username(), pe.password());
+            public KeyStoreAccess load(@Nonnull Long key) {
+                return new KeyStoreAccessImpl(
+                        new KeyStoreFactory(ksa.keyStorePath(), ksa.keyStorePassword()).build(),
+                        ksa.keyStorePath(), ksa.keyStorePassword()
+                );
             }
         };
 
-        this.loadingCache = CacheBuilder.newBuilder().refreshAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
-
+        this.loadingCache = CacheBuilder
+                .newBuilder()
+                .maximumSize(1L)
+                .refreshAfterWrite(secs, TimeUnit.SECONDS)
+                .build(cacheLoader);
     }
 
     public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return keyStoreAccess.loadKey(username);
+        try {
+            return loadingCache.get(0L).loadKey(username);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, loadKey failed: ", e);
+        }
     }
 
     public void saveKey(final String username, final char[] password) throws KeyStoreException {
-        keyStoreAccess.saveKey(username, password);
+        try {
+            loadingCache.get(0L).saveKey(username, password);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, saveKey failed: ", e);
+        }
     }
 
-    public boolean verifyKey(final String username, final char[] password) throws KeyStoreException {
+    public boolean verifyKey(final String username, final char[] password) throws UnrecoverableEntryException, InvalidKeySpecException, KeyStoreException, InvalidKeyException {
         try {
-            return loadingCache.get(new UserNameAndPassword(username, password));
+            return loadingCache.get(0L).verifyKey(username, password);
         } catch (ExecutionException e) {
-            throw new KeyStoreException("Could not access KeyStore: ", e);
+            throw new KeyStoreException("Could not access KeyStore, verifyKey failed: ", e);
         }
     }
 
     public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
-        return keyStoreAccess.deleteKey(usernameToRemove);
+        try {
+            return loadingCache.get(0L).deleteKey(usernameToRemove);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, deleteKey failed: ", e);
+        }
     }
 
     public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
-       return keyStoreAccess.checkForExistingAlias(usernameToCheck);
+        try {
+            return loadingCache.get(0L).checkForExistingAlias(usernameToCheck);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, checkForExistingAlias failed: ", e);
+        }
     }
 
+    @Override
     public String keyStorePath() {
-        return keyStoreAccess.keyStorePath();
+        return ksa.keyStorePath();
     }
 
+    @Override
     public char[] keyStorePassword() {
-        return keyStoreAccess.keyStorePassword();
+        return ksa.keyStorePassword();
     }
 }

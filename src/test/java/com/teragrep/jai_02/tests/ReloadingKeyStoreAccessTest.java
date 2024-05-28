@@ -46,37 +46,36 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
+import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
 import com.teragrep.jai_02.keystore.KeyStoreFactory;
+import com.teragrep.jai_02.keystore.ReloadingKeyStoreAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
-
-public class KeyStoreAccessTest {
+public class ReloadingKeyStoreAccessTest {
 
     private static String keyStorePath = "target/keystore.p12";
     private static String keyStorePassword = "changeit";
     private static String userName = "trusted-12";
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
 
-    private static KeyStoreAccess ksa;
+    private static ReloadingKeyStoreAccess rksa;
     @BeforeAll
     public static void prepare() {
         Assertions.assertDoesNotThrow(() -> {
-            ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
-            ksa.deleteKey(userName);
+            rksa = new ReloadingKeyStoreAccess(
+                    new KeyStoreAccessImpl(
+                            new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                            keyStorePath, keyStorePassword.toCharArray()), 10L);
+
+            rksa.deleteKey(userName);
         });
     }
 
     public void save() {
         Assertions.assertDoesNotThrow(() -> {
-            ksa.saveKey(
+            rksa.saveKey(
                     userName,
                     userPassWord.toCharArray());
         });
@@ -84,7 +83,7 @@ public class KeyStoreAccessTest {
 
     public void verify() {
         Assertions.assertDoesNotThrow(() -> {
-            boolean authOk = ksa.verifyKey(
+            boolean authOk = rksa.verifyKey(
                     userName,
                     userPassWord.toCharArray());
 

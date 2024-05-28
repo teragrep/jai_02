@@ -46,14 +46,18 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
-import com.teragrep.jai_02.keystore.KeyStoreFactory;
+import com.teragrep.jai_02.keystore.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class CachingKeyStoreAccessTest {
+import javax.crypto.SecretKey;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+
+public class CachingAndReloadingKeyStoreAccessTest {
 
     private static String keyStorePath = "target/keystore.p12";
     private static String keyStorePassword = "changeit";
@@ -65,9 +69,11 @@ public class CachingKeyStoreAccessTest {
     public static void prepare() {
         Assertions.assertDoesNotThrow(() -> {
             cksa = new CachingKeyStoreAccess(
-                    new KeyStoreAccessImpl(
-                            new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                            keyStorePath, keyStorePassword.toCharArray()), 10L);
+                    new ReloadingKeyStoreAccess(
+                            new KeyStoreAccessImpl(
+                                    new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                    keyStorePath, keyStorePassword.toCharArray()), 1L
+                    ), 10L);
 
             cksa.deleteKey(userName);
         });
@@ -95,6 +101,37 @@ public class CachingKeyStoreAccessTest {
     public void saveAndVerifyTest() {
         save();
         verify();
+    }
+
+    @Test
+    public void externalModification_Delete_Test() {
+        Assertions.assertDoesNotThrow(() -> {
+            cksa.deleteKey(userName);
+            cksa.saveKey(userName, userPassWord.toCharArray());
+            Files.deleteIfExists(Paths.get(keyStorePath));
+            Thread.sleep(2000); // KeyStore refreshes every second
+        });
+
+        // key should not exist
+        Assertions.assertThrows(InvalidKeyException.class, () -> {
+            cksa.loadKey(userName);
+        }, "Username <[" + userName + "]> was not found in the map!");
+    }
+
+    @Test
+    public void externalModification_AddEntry_Test() {
+        Assertions.assertDoesNotThrow(() -> {
+            KeyStore externalStore = KeyStore.getInstance("PKCS12");
+            externalStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+            EntryAlias ea = new EntryAliasFactory().build("new-alias");
+            SecretKey sk = new PasswordEntryFactory(ea).build("pass".toCharArray()).secretKey();
+            externalStore.setEntry(ea.toString(), new KeyStore.SecretKeyEntry(sk),
+                    new KeyStore.PasswordProtection(keyStorePassword.toCharArray()));
+            externalStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+            Thread.sleep(2000); // Refreshes in 1 second, use 2s to avoid race condition
+            SecretKey same = cksa.loadKey("new-alias").secretKey();
+            Assertions.assertEquals(sk, same);
+        });
     }
 }
 

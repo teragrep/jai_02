@@ -43,27 +43,53 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
+package com.teragrep.jai_02.tests;
 
-public interface KeyStoreAccess {
-    PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException;
+import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
+import com.teragrep.jai_02.keystore.KeyStoreFactory;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-    void saveKey(final String username, final char[] password) throws KeyStoreException;
+public class KeyStoreAccessImplTest {
 
-    boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
-            UnrecoverableEntryException, KeyStoreException, InvalidKeyException;
+    private static String keyStorePath = "target/keystore.p12";
+    private static String keyStorePassword = "changeit";
+    private static String userName = "trusted-12";
+    private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
 
-    int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException;
+    private static KeyStoreAccessImpl ksa;
+    @BeforeAll
+    public static void prepare() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa = new KeyStoreAccessImpl(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
+            ksa.deleteKey(userName);
+        });
+    }
 
-    boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException;
+    public void save() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.saveKey(
+                    userName,
+                    userPassWord.toCharArray());
+        });
+    }
 
-    String keyStorePath();
+    public void verify() {
+        Assertions.assertDoesNotThrow(() -> {
+            boolean authOk = ksa.verifyKey(
+                    userName,
+                    userPassWord.toCharArray());
 
-    char[] keyStorePassword();
+            Assertions.assertTrue(authOk);
+        });
+    }
+
+    @Test
+    public void saveAndVerifyTest() {
+        save();
+        verify();
+    }
 }
+
