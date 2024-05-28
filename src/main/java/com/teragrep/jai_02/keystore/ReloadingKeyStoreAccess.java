@@ -49,6 +49,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
@@ -65,7 +66,7 @@ public class ReloadingKeyStoreAccess implements IKeyStoreAccess {
 
         CacheLoader<Long, IKeyStoreAccess> cacheLoader = new CacheLoader<Long, IKeyStoreAccess>() {
             @Override
-            public IKeyStoreAccess load(Long key) throws Exception {
+            public IKeyStoreAccess load(@Nonnull Long key) {
                 return new KeyStoreAccess(
                         new KeyStoreFactory(ksa.keyStorePath(), ksa.keyStorePassword()).build(),
                         ksa.keyStorePath(), ksa.keyStorePassword()
@@ -80,24 +81,44 @@ public class ReloadingKeyStoreAccess implements IKeyStoreAccess {
                 .build(cacheLoader);
     }
 
-    public PasswordEntry loadKey(final String username) throws ExecutionException, UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
-        return loadingCache.get(0L).loadKey(username);
+    public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
+        try {
+            return loadingCache.get(0L).loadKey(username);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, loadKey failed: ", e);
+        }
     }
 
-    public void saveKey(final String username, final char[] password) throws ExecutionException, KeyStoreException {
-        loadingCache.get(0L).saveKey(username, password);
+    public void saveKey(final String username, final char[] password) throws KeyStoreException {
+        try {
+            loadingCache.get(0L).saveKey(username, password);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, saveKey failed: ", e);
+        }
     }
 
-    public boolean verifyKey(final String username, final char[] password) throws ExecutionException, UnrecoverableEntryException, InvalidKeySpecException, KeyStoreException, InvalidKeyException {
-        return loadingCache.get(0L).verifyKey(username, password);
+    public boolean verifyKey(final String username, final char[] password) throws UnrecoverableEntryException, InvalidKeySpecException, KeyStoreException, InvalidKeyException {
+        try {
+            return loadingCache.get(0L).verifyKey(username, password);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, verifyKey failed: ", e);
+        }
     }
 
-    public int deleteKey(final String usernameToRemove) throws ExecutionException, KeyStoreException, IOException {
-        return loadingCache.get(0L).deleteKey(usernameToRemove);
+    public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
+        try {
+            return loadingCache.get(0L).deleteKey(usernameToRemove);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, deleteKey failed: ", e);
+        }
     }
 
-    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException, ExecutionException {
-        return loadingCache.get(0L).checkForExistingAlias(usernameToCheck);
+    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
+        try {
+            return loadingCache.get(0L).checkForExistingAlias(usernameToCheck);
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore, checkForExistingAlias failed: ", e);
+        }
     }
 
     @Override

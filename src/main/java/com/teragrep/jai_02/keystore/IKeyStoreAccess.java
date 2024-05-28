@@ -50,19 +50,18 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
 
 public interface IKeyStoreAccess {
-    PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException, ExecutionException;
+    PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException;
 
-    void saveKey(final String username, final char[] password) throws KeyStoreException, ExecutionException;
+    void saveKey(final String username, final char[] password) throws KeyStoreException;
 
     boolean verifyKey(final String username, final char[] password) throws InvalidKeySpecException,
-            UnrecoverableEntryException, KeyStoreException, InvalidKeyException, ExecutionException;
+            UnrecoverableEntryException, KeyStoreException, InvalidKeyException;
 
-    int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException, ExecutionException;
+    int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException;
 
-    boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException, ExecutionException;
+    boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException;
 
     String keyStorePath();
 

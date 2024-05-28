@@ -114,7 +114,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
             cksa.deleteKey(userName);
             cksa.saveKey(userName, userPassWord.toCharArray());
             Files.deleteIfExists(Paths.get(keyStorePath));
-            Thread.sleep(1000); // KeyStore refreshes every second
+            Thread.sleep(2000); // KeyStore refreshes every second
         });
 
         // key should not exist
@@ -133,7 +133,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
             externalStore.setEntry(ea.toString(), new KeyStore.SecretKeyEntry(sk),
                     new KeyStore.PasswordProtection(keyStorePassword.toCharArray()));
             externalStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
-            Thread.sleep(1000); // Refreshes in 1 second
+            Thread.sleep(2000); // Refreshes in 1 second, use 2s to avoid race condition
             SecretKey same = cksa.loadKey("new-alias").secretKey();
             Assertions.assertEquals(sk, same);
         });

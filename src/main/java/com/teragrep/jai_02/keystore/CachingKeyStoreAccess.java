@@ -89,23 +89,27 @@ public class CachingKeyStoreAccess implements IKeyStoreAccess {
 
     }
 
-    public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException, ExecutionException {
+    public PasswordEntry loadKey(final String username) throws UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         return keyStoreAccess.loadKey(username);
     }
 
-    public void saveKey(final String username, final char[] password) throws KeyStoreException, ExecutionException {
+    public void saveKey(final String username, final char[] password) throws KeyStoreException {
         keyStoreAccess.saveKey(username, password);
     }
 
-    public boolean verifyKey(final String username, final char[] password) throws ExecutionException {
-        return loadingCache.get(new UserNameAndPassword(username, password));
+    public boolean verifyKey(final String username, final char[] password) throws KeyStoreException {
+        try {
+            return loadingCache.get(new UserNameAndPassword(username, password));
+        } catch (ExecutionException e) {
+            throw new KeyStoreException("Could not access KeyStore: ", e);
+        }
     }
 
-    public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException, ExecutionException {
+    public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
         return keyStoreAccess.deleteKey(usernameToRemove);
     }
 
-    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException, ExecutionException {
+    public boolean checkForExistingAlias(final String usernameToCheck) throws KeyStoreException {
        return keyStoreAccess.checkForExistingAlias(usernameToCheck);
     }
 

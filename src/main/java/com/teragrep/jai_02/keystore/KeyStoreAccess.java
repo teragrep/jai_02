@@ -96,6 +96,10 @@ public class KeyStoreAccess implements IKeyStoreAccess {
             throw new RuntimeException("Invalid algorithm provided for KeyStore", e);
         }
 
+        if (ske == null) {
+            throw new InvalidKeyException("Could not find SecretKey in KeyStore for username <[" + username + "]>");
+        }
+
         return new PasswordEntry(
                 keyWithSecret.asEntryAlias(),
                 new SecretKeySpec(ske.getSecretKey().getEncoded(), keyWithSecret.keyAlgorithm().get().toString())
