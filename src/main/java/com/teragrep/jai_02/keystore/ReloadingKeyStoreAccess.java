@@ -58,16 +58,16 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class ReloadingKeyStoreAccess implements IKeyStoreAccess {
-    private IKeyStoreAccess ksa;
-    private final LoadingCache<Long, IKeyStoreAccess> loadingCache;
-    public ReloadingKeyStoreAccess(IKeyStoreAccess ksa, long secs) {
+public class ReloadingKeyStoreAccess implements KeyStoreAccess {
+    private KeyStoreAccess ksa;
+    private final LoadingCache<Long, KeyStoreAccess> loadingCache;
+    public ReloadingKeyStoreAccess(KeyStoreAccess ksa, long secs) {
         this.ksa = ksa;
 
-        CacheLoader<Long, IKeyStoreAccess> cacheLoader = new CacheLoader<Long, IKeyStoreAccess>() {
+        CacheLoader<Long, KeyStoreAccess> cacheLoader = new CacheLoader<Long, KeyStoreAccess>() {
             @Override
-            public IKeyStoreAccess load(@Nonnull Long key) {
-                return new KeyStoreAccess(
+            public KeyStoreAccess load(@Nonnull Long key) {
+                return new KeyStoreAccessImpl(
                         new KeyStoreFactory(ksa.keyStorePath(), ksa.keyStorePassword()).build(),
                         ksa.keyStorePath(), ksa.keyStorePassword()
                 );

@@ -47,18 +47,11 @@
 package com.teragrep.jai_02.tests;
 
 import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
+import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
 import com.teragrep.jai_02.keystore.KeyStoreFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
 
 public class CachingKeyStoreAccessTest {
 
@@ -72,7 +65,7 @@ public class CachingKeyStoreAccessTest {
     public static void prepare() {
         Assertions.assertDoesNotThrow(() -> {
             cksa = new CachingKeyStoreAccess(
-                    new KeyStoreAccess(
+                    new KeyStoreAccessImpl(
                             new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
                             keyStorePath, keyStorePassword.toCharArray()), 10L);
 

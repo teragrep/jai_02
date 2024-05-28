@@ -57,11 +57,11 @@ public class UserToAliasMappingTest {
     private static String keyStorePassword = "changeit";
     private static String userName = "trusted-12";
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
-    private static KeyStoreAccess ksa;
+    private static KeyStoreAccessImpl ksa;
 
     @BeforeAll
     public static void prepare() {
-        ksa = new KeyStoreAccess(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
+        ksa = new KeyStoreAccessImpl(new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(), keyStorePath, keyStorePassword.toCharArray());
     }
 
     @Test

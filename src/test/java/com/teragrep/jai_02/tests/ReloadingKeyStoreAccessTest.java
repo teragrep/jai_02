@@ -46,8 +46,7 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
+import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
 import com.teragrep.jai_02.keystore.KeyStoreFactory;
 import com.teragrep.jai_02.keystore.ReloadingKeyStoreAccess;
 import org.junit.jupiter.api.Assertions;
@@ -66,7 +65,7 @@ public class ReloadingKeyStoreAccessTest {
     public static void prepare() {
         Assertions.assertDoesNotThrow(() -> {
             rksa = new ReloadingKeyStoreAccess(
-                    new KeyStoreAccess(
+                    new KeyStoreAccessImpl(
                             new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
                             keyStorePath, keyStorePassword.toCharArray()), 10L);
 

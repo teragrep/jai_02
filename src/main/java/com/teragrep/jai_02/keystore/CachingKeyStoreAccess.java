@@ -49,17 +49,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -68,13 +59,13 @@ import java.util.concurrent.TimeUnit;
  * and deleting entries. Keeps track of the username->alias mapping
  * via the UserToAliasMapping object.
  */
-public class CachingKeyStoreAccess implements IKeyStoreAccess {
-    private final IKeyStoreAccess keyStoreAccess;
+public class CachingKeyStoreAccess implements KeyStoreAccess {
+    private final KeyStoreAccess keyStoreAccess;
 
     // cache
     private final LoadingCache<UserNameAndPassword, Boolean> loadingCache;
 
-    public CachingKeyStoreAccess(final IKeyStoreAccess keyStoreAccess, final long secs) {
+    public CachingKeyStoreAccess(final KeyStoreAccess keyStoreAccess, final long secs) {
         this.keyStoreAccess = keyStoreAccess;
 
         CacheLoader<UserNameAndPassword, Boolean> cacheLoader = new CacheLoader<UserNameAndPassword, Boolean>() {

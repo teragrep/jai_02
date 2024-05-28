@@ -52,15 +52,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
 
 public class CachingAndReloadingKeyStoreAccessTest {
 
@@ -75,7 +70,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
         Assertions.assertDoesNotThrow(() -> {
             cksa = new CachingKeyStoreAccess(
                     new ReloadingKeyStoreAccess(
-                            new KeyStoreAccess(
+                            new KeyStoreAccessImpl(
                                     new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
                                     keyStorePath, keyStorePassword.toCharArray()), 1L
                     ), 10L);
