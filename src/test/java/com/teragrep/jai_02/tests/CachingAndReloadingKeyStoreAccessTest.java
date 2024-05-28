@@ -46,18 +46,17 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreFactory;
-import com.teragrep.jai_02.keystore.ReloadingKeyStoreAccess;
+import com.teragrep.jai_02.keystore.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
@@ -110,7 +109,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
     }
 
     @Test
-    public void externalModificationTest() {
+    public void externalModification_Delete_Test() {
         Assertions.assertDoesNotThrow(() -> {
             cksa.deleteKey(userName);
             cksa.saveKey(userName, userPassWord.toCharArray());
@@ -122,6 +121,22 @@ public class CachingAndReloadingKeyStoreAccessTest {
         Assertions.assertThrows(InvalidKeyException.class, () -> {
             cksa.loadKey(userName);
         }, "Username <[" + userName + "]> was not found in the map!");
+    }
+
+    @Test
+    public void externalModification_AddEntry_Test() {
+        Assertions.assertDoesNotThrow(() -> {
+            KeyStore externalStore = KeyStore.getInstance("PKCS12");
+            externalStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+            EntryAlias ea = new EntryAliasFactory().build("new-alias");
+            SecretKey sk = new PasswordEntryFactory(ea).build("pass".toCharArray()).secretKey();
+            externalStore.setEntry(ea.toString(), new KeyStore.SecretKeyEntry(sk),
+                    new KeyStore.PasswordProtection(keyStorePassword.toCharArray()));
+            externalStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
+            Thread.sleep(1000); // Refreshes in 1 second
+            SecretKey same = cksa.loadKey("new-alias").secretKey();
+            Assertions.assertEquals(sk, same);
+        });
     }
 }
 
