@@ -60,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Provides access to the KeyStore, such as loading, saving
- * and deleting entries. Keeps track of the username->alias mapping
+ * and deleting entries. Keeps track of the username:alias mapping
  * via the UserToAliasMapping object.
  */
 public class CachingKeyStoreAccess implements KeyStoreAccess {
