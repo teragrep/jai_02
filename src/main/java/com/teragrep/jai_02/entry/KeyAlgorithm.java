@@ -1,4 +1,4 @@
-/*
+package com.teragrep.jai_02.entry;/*
  * Java Authentication Info jai_02
  * Copyright (C) 2021  Suomen Kanuuna Oy
  *
@@ -43,57 +43,50 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
 
 /**
- * Provides a factory for building EntryAlias objects.
+ * An object containing the algorithm used for SecretKeys.
  */
-public class EntryAliasFactory {
-    private final SaltFactory saltFactory;
-    private final int iterationCount;
-    private final Split split;
+public class KeyAlgorithm {
+    private final KeySecretAlgorithm keySecretAlgorithm;
 
-    public EntryAliasFactory() {
-        this(new SaltFactory(), new Split(':'), 100_000);
+    public enum KeySecretAlgorithm {
+        // Default algorithm for SecretKey
+        // Another options can be added in the future
+        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
+
+        private final String algo;
+
+        KeySecretAlgorithm(String algo) {
+            this.algo = algo;
+        }
+
+        @Override
+        public String toString() {
+            return this.algo;
+        }
     }
 
-    public EntryAliasFactory(int iterationCount) {
-        this(new SaltFactory(), new Split(':'), iterationCount);
+    /**
+     * Defaults algorithms to:
+     * <ul>
+     * <li>For SecretKeys, PBKDF2WithHmacSHA1.</li>
+     * </ul>
+     */
+    public KeyAlgorithm() {
+        this(KeySecretAlgorithm.PBKDF2WithHmacSHA1);
     }
 
-    public EntryAliasFactory(SaltFactory saltFactory, Split split, int iterationCount) {
-        this.saltFactory = saltFactory;
-        this.split = split;
-        this.iterationCount = iterationCount;
+    /**
+     * Customize the used algorithms for individual SecretKeys.
+     * @param keySecretAlgorithm SecretKey algorithm
+     */
+    public KeyAlgorithm(KeySecretAlgorithm keySecretAlgorithm) {
+        this.keySecretAlgorithm = keySecretAlgorithm;
     }
 
-    public EntryAlias build(final String username) {
-        return new EntryAlias(
-                new UserNameImpl(username, split).asValid(),
-                saltFactory.createSalt(),
-                iterationCount,
-                split
-        );
-    }
 
-    public EntryAlias build(final String username, final Salt salt) {
-        return new EntryAlias(
-                new UserNameImpl(username, split).asValid(),
-                salt,
-                iterationCount,
-                split
-        );
-    }
-
-    public SaltFactory saltFactory() {
-        return this.saltFactory;
-    }
-
-    public int iterationCount() {
-        return this.iterationCount;
-    }
-
-    public Split split() {
-        return this.split;
+    public KeySecretAlgorithm get() {
+        return this.keySecretAlgorithm;
     }
 }

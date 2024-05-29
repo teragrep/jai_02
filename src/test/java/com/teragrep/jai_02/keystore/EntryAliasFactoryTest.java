@@ -45,6 +45,10 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import com.teragrep.jai_02.entry.EntryAlias;
+import com.teragrep.jai_02.entry.EntryAliasFactory;
+import com.teragrep.jai_02.entry.Split;
+import com.teragrep.jai_02.password.SaltFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

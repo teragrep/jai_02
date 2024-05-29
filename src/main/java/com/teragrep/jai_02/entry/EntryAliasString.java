@@ -43,63 +43,52 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.entry;
 
-import java.util.Objects;
+import com.teragrep.jai_02.password.Salt;
+import com.teragrep.jai_02.user.UserNameImpl;
+import com.teragrep.jai_02.user.UserNameValid;
+
+import java.util.Base64;
 
 /**
- * Provides an alias for a KeyStore Entry.
- * Contains the username, salt, iteration count and split character.
+ * Provides facilities to generate an EntryAlias object from
+ * a compliant String.
  */
-public class EntryAlias {
+public class EntryAliasString {
 
-    private final UserNameValid userNameValid;
-    private final Salt salt;
-    private final int iterationCount;
+    private final String alias;
     private final Split split;
 
-    public EntryAlias(UserNameValid userNameValid, Salt salt, int iterationCount, Split split) {
-        this.userNameValid = userNameValid;
-        this.salt = salt;
-        this.iterationCount = iterationCount;
+    public EntryAliasString(String alias, Split split) {
+        this.alias = alias;
         this.split = split;
+    }
+
+    public EntryAlias toEntryAlias() {
+        String[] fragments = split.asPattern().split(alias);
+        if (fragments.length != 3) {
+            throw new IllegalArgumentException("Invalid alias: " + alias + " does not decode into 3 parts with " + split);
+        }
+
+        String userName = fragments[0];
+        UserNameValid userNameValid = new UserNameValid(new UserNameImpl(userName, split));
+        Salt salt = new Salt(Base64.getDecoder().decode(fragments[1]));
+
+        int iterationCount;
+        try {
+            iterationCount = Integer.parseInt(fragments[2]);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Invalid iterationCount was <[ " + fragments[2] + "]>, expected integer.");
+        }
+
+
+
+        return new EntryAlias(userNameValid, salt, iterationCount, split);
     }
 
     @Override
     public String toString() {
-        return userNameValid.toString() + split + salt + split + iterationCount;
+        return alias;
     }
-
-    public UserName userName() {
-        return userNameValid;
-    }
-
-    public Salt salt() {
-        return salt;
-    }
-
-    public int iterationCount() {
-        return iterationCount;
-    }
-
-    public Split split() {
-        return split;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        EntryAlias entryAlias = (EntryAlias) o;
-        return iterationCount == entryAlias.iterationCount() && Objects.equals(
-                userNameValid, entryAlias.userName()) && Objects.equals(salt, entryAlias.salt()) && Objects.equals(split, entryAlias.split());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userNameValid, salt, iterationCount, split);
-    }
-
 }

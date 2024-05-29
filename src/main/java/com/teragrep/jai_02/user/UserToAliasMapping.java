@@ -43,22 +43,57 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.user;
 
-public class UserNameAndPassword {
-    private final String username;
-    private final char[] password;
+import com.teragrep.jai_02.entry.EntryAlias;
+import com.teragrep.jai_02.entry.EntryAliasString;
+import com.teragrep.jai_02.entry.Split;
 
-    public UserNameAndPassword(String username, char[] password) {
-        this.username = username;
-        this.password = password;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Map between the username and EntryAlias.
+ * Loads existing aliases from the KeyStore on object initialization.
+ * If there are multiple aliases for one username, the last one encountered takes priority.
+ */
+public class UserToAliasMapping {
+    private final Map<String, String> internalMap;
+    public UserToAliasMapping(KeyStore ks, Split split) {
+        this.internalMap = new HashMap<>();
+
+        // Initialize map with existing contents
+        final Enumeration<String> aliases;
+        try {
+            aliases = ks.aliases();
+        } catch (KeyStoreException e) {
+            throw new RuntimeException("KeyStore was not initialized, " +
+                    "cannot initialize userToAliasMapping!");
+        }
+
+        while (aliases.hasMoreElements()) {
+            final String alias = aliases.nextElement();
+            final EntryAlias k = new EntryAliasString(alias, split).toEntryAlias();
+            this.internalMap.put(k.userName().toString(), alias);
+        }
     }
 
-    public String username() {
-        return username;
+    public void put(String username, String fullAlias) {
+        this.internalMap.put(username, fullAlias);
     }
 
-    public char[] password() {
-        return password;
+    public String get(String username) {
+        return this.internalMap.get(username);
+    }
+
+    public boolean has(String username) {
+        return this.internalMap.containsKey(username);
+    }
+
+    public void remove(String username) {
+        this.internalMap.remove(username);
     }
 }

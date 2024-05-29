@@ -43,55 +43,29 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.password;
 
-import java.util.Objects;
-import java.util.regex.Pattern;
+import com.teragrep.jai_02.entry.EntryAlias;
+
+import javax.crypto.SecretKey;
 
 /**
- * Provides the Split character and Regex pattern of said character used
- * in the EntryAlias.
+ * Key-Value pair of EntryAlias and SecretKey.
  */
-public class Split {
+public class PasswordEntry {
+    private final EntryAlias entryAlias;
+    private final SecretKey secretKey;
 
-    private final char splitChar;
-    private final Pattern pattern;
-
-    public Split(char splitChar) {
-        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
+    public PasswordEntry(EntryAlias entryAlias, SecretKey secretKey) {
+        this.entryAlias = entryAlias;
+        this.secretKey = secretKey;
     }
 
-    public Split(char splitChar, Pattern pattern) {
-        this.splitChar = splitChar;
-        this.pattern = pattern;
+    public EntryAlias entryAlias() {
+        return entryAlias;
     }
 
-    @Override
-    public String toString() {
-        return Character.toString(splitChar);
+    public SecretKey secretKey() {
+        return secretKey;
     }
-
-    Pattern asPattern() {
-        return pattern;
-    }
-
-    char splitChar() {
-        return splitChar;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Split split = (Split) o;
-        return splitChar == split.splitChar() && Objects.equals(pattern.pattern(), split.pattern.pattern());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(splitChar, pattern.pattern());
-    }
-
 }

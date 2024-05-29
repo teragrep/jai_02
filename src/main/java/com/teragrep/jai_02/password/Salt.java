@@ -43,27 +43,48 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.password;
 
-import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 
 /**
- * Key-Value pair of EntryAlias and SecretKey.
+ * Defines the salt used for salting the SecretKey.
  */
-public class PasswordEntry {
-    private final EntryAlias entryAlias;
-    private final SecretKey secretKey;
+public class Salt {
+    private final byte[] salt;
 
-    public PasswordEntry(EntryAlias entryAlias, SecretKey secretKey) {
-        this.entryAlias = entryAlias;
-        this.secretKey = secretKey;
+    public Salt(byte[] salt) {
+        this.salt = salt;
     }
 
-    public EntryAlias entryAlias() {
-        return entryAlias;
+    public byte[] asBase64() {
+        return Base64.getEncoder().encode(salt);
     }
 
-    public SecretKey secretKey() {
-        return secretKey;
+    public byte[] asBytes() {
+        return salt;
     }
+
+    @Override
+    public String toString() {
+        return new String(asBase64(), StandardCharsets.US_ASCII);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Salt other = (Salt) o;
+        return Arrays.equals(salt, other.asBytes());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(salt);
+    }
+
 }

@@ -43,34 +43,49 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
+package com.teragrep.jai_02.user;
 
-package com.teragrep.jai_02.tests;
+import com.teragrep.jai_02.entry.Split;
 
-import com.teragrep.jai_02.CredentialLookup;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import java.util.Objects;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+/**
+ * Implementation of the UserName interface.
+ */
+public class UserNameImpl implements UserName {
 
-public class CredentialLookupTest {
-
-    @Test()
-    public void readTest() throws FileNotFoundException {
-        BufferedReader br = new BufferedReader(
-                new FileReader("src/test/resources/credentials.json"));
-        CredentialLookup credentialLookup = new CredentialLookup(br);
-        Assertions.assertEquals("XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY",
-                credentialLookup.getCredential("trusted-12"));
+    public final String username;
+    public final Split split;
+    public UserNameImpl(String username, Split split) {
+        this.username = username;
+        this.split = split;
     }
 
-    @Test()
-    public void readNoSuchTest() throws FileNotFoundException {
-        BufferedReader br = new BufferedReader(
-                new FileReader("src/test/resources/credentials.json"));
-        CredentialLookup credentialLookup = new CredentialLookup(br);
-        Assertions.assertNull(credentialLookup.getCredential("trusted-00"));
+    public UserNameValid asValid() {
+        if (username.contains(split.toString())) {
+            throw new IllegalArgumentException("username must not contain split: <[" + split + "]>");
+        }
+        return new UserNameValid(this);
     }
+
+    @Override
+    public String toString() {
+        return username;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserNameImpl userName = (UserNameImpl) o;
+        return Objects.equals(username, userName.username) && Objects.equals(split, userName.split);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, split);
+    }
+
 }
-

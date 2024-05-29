@@ -43,51 +43,39 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.user;
+
+import java.util.Objects;
 
 /**
- * An object containing the algorithm used for SecretKeys.
+ * Validated UserName, not to contain the Split character.
  */
-public class KeyAlgorithm {
-    private final KeySecretAlgorithm keySecretAlgorithm;
+public class UserNameValid implements UserName {
 
-    public enum KeySecretAlgorithm {
-        // Default algorithm for SecretKey
-        // Another options can be added in the future
-        PBKDF2WithHmacSHA1("PBKDF2WithHmacSHA1");
+    private final UserName username;
 
-        private final String algo;
-
-        KeySecretAlgorithm(String algo) {
-            this.algo = algo;
-        }
-
-        @Override
-        public String toString() {
-            return this.algo;
-        }
+    public UserNameValid(UserName username) {
+        this.username = username;
     }
 
-    /**
-     * Defaults algorithms to:
-     * <ul>
-     * <li>For SecretKeys, PBKDF2WithHmacSHA1.</li>
-     * </ul>
-     */
-    public KeyAlgorithm() {
-        this(KeySecretAlgorithm.PBKDF2WithHmacSHA1);
+    @Override
+    public String toString() {
+        return username.toString();
     }
 
-    /**
-     * Customize the used algorithms for individual SecretKeys.
-     * @param keySecretAlgorithm SecretKey algorithm
-     */
-    public KeyAlgorithm(KeySecretAlgorithm keySecretAlgorithm) {
-        this.keySecretAlgorithm = keySecretAlgorithm;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserNameValid that = (UserNameValid) o;
+        return Objects.equals(username.toString(), that.username.toString());
     }
 
-
-    public KeySecretAlgorithm get() {
-        return this.keySecretAlgorithm;
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(username);
     }
+
 }

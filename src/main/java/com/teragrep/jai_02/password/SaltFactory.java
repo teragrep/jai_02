@@ -43,12 +43,30 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.password;
+
+import java.security.SecureRandom;
 
 /**
- * Interface used for the username.
- * First part of the EntryAlias, followed by salt and iteration count.
+ * Provides a factory, which builds the Salt object.
  */
-public interface UserName {
-    String toString();
+public class SaltFactory {
+
+    private final int length;
+
+    public SaltFactory() {
+        // Default salt length 20 bytes
+        this(20);
+    }
+
+    public SaltFactory(int length) {
+        this.length = length;
+    }
+
+    public Salt createSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] saltBytes = new byte[length];
+        random.nextBytes(saltBytes);
+        return new Salt(saltBytes);
+    }
 }

@@ -1,4 +1,4 @@
-/*
+package com.teragrep.jai_02.entry;/*
  * Java Authentication Info jai_02
  * Copyright (C) 2021  Suomen Kanuuna Oy
  *
@@ -43,30 +43,54 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
 
-import java.security.SecureRandom;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
- * Provides a factory, which builds the Salt object.
+ * Provides the Split character and Regex pattern of said character used
+ * in the EntryAlias.
  */
-public class SaltFactory {
+public class Split {
 
-    private final int length;
+    private final char splitChar;
+    private final Pattern pattern;
 
-    public SaltFactory() {
-        // Default salt length 20 bytes
-        this(20);
+    public Split(char splitChar) {
+        this(splitChar, Pattern.compile(Pattern.quote(Character.toString(splitChar))));
     }
 
-    public SaltFactory(int length) {
-        this.length = length;
+    public Split(char splitChar, Pattern pattern) {
+        this.splitChar = splitChar;
+        this.pattern = pattern;
     }
 
-    Salt createSalt() {
-        SecureRandom random = new SecureRandom();
-        byte[] saltBytes = new byte[length];
-        random.nextBytes(saltBytes);
-        return new Salt(saltBytes);
+    @Override
+    public String toString() {
+        return Character.toString(splitChar);
     }
+
+    public Pattern asPattern() {
+        return pattern;
+    }
+
+    char splitChar() {
+        return splitChar;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Split split = (Split) o;
+        return splitChar == split.splitChar() && Objects.equals(pattern.pattern(), split.pattern.pattern());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(splitChar, pattern.pattern());
+    }
+
 }

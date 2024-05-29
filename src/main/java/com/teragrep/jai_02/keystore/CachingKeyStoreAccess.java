@@ -48,9 +48,13 @@ package com.teragrep.jai_02.keystore;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.teragrep.jai_02.password.PasswordEntry;
+import com.teragrep.jai_02.user.UserNameAndPassword;
 
 import java.io.IOException;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 

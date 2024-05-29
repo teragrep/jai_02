@@ -45,6 +45,8 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import com.teragrep.jai_02.password.Salt;
+import com.teragrep.jai_02.password.SaltFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
