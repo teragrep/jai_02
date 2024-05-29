@@ -65,7 +65,7 @@ import java.util.List;
 
 /**
  * Provides access to the KeyStore, such as loading, saving
- * and deleting entries. Keeps track of the username->alias mapping
+ * and deleting entries. Keeps track of the username:alias mapping
  * via the UserToAliasMapping object.
  */
 public class KeyStoreAccessImpl implements KeyStoreAccess {
