@@ -54,6 +54,10 @@ public class JAI02Example {
         // Saving a key - this will throw an exception if it was already present
         cksa.saveKey(username, pw.toCharArray());
 
+        // Deleting an entry
+        int deleted = cksa.deleteKey(username);
+        System.out.printf("Deleted <%s> entries for username <[%s]>\n", deleted, username);
+
         // Check if the username-password combination was correct
         boolean authOk = cksa.verifyKey(username, pw.toCharArray());
         if (authOk) {
