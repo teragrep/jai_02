@@ -1,20 +1,74 @@
-# jai_02
+= jai_02
 
-Java Authentication Info
+Java Authentication Info. Provides a secure way of storing authentication information with
+encryption and salting.
 
-## Features
+== Features
 
-## Documentation
+* Provides load, save, verify and delete capabilities for Java KeyStore entries.
+* Uses PKCS12 KeyStore format by default and PBKDF2WithHmacSHA1 algorithm for SecretKeys.
+* The underlying KeyStore file can be modified without disrupting the functionality.
+* Utilizes a cache for username-password pairs verification.
+* Contains a KeyStoreFactory that is optional to use, but makes loading one easier.
+
+== Documentation
 
 See the official documentation on https://docs.teragrep.com[docs.teragrep.com].
 
-## Limitations
+== Limitations
 
-## How to [compile/use/implement]
+* Not all Java KeyStore formats and SecretKey algorithms are supported. This however is a conscious
+design choice as the others were deemed insecure for the purposes of this project.
 
-## Contributing
+== How to build and use
 
-You can involve yourself with our project by https://github.com/teragrep/repo-template/issues/new/choose[opening an issue] or submitting a pull request. 
+Building with Maven:
+[source, bash]
+----
+$ mvn clean [install|package]
+----
+
+Example usage:
+[source,java]
+----
+import com.teragrep.jai_02.keystore.*;
+import javax.crypto.SecretKey;
+
+public class JAI02Example {
+    public static void main(String[] args) {
+        // Initialize a Caching and Reloading KeyStoreAccess object.
+        // Note: KeyStoreAccess can be used on its own, and you can choose
+        // whether to use Reloading and Caching KeyStore accesses.
+        CachingKeyStoreAccess cksa = new CachingKeyStoreAccess(
+        new ReloadingKeyStoreAccess(
+                new KeyStoreAccessImpl(
+                        new KeyStoreFactory(path, pw.toCharArray()).build(),
+                        path, pw.toCharArray()), 10L),
+                10L);
+
+        // Loading a key - this will throw an exception if not present
+        PasswordEntry loadedEntry = cksa.loadKey(username);
+        EntryAlias loadedAlias = loadedEntry.entryAlias();
+        SecretKey loadedSecret = loadedEntry.secretKey();
+
+        // Saving a key - this will throw an exception if it was already present
+        cksa.saveKey(username, pw.toCharArray());
+
+        // Check if the username-password combination was correct
+        boolean authOk = cksa.verifyKey(username, pw.toCharArray());
+        if (authOk) {
+            System.out.printf("User <[%s]> was authenticated!\n", username);
+        } else {
+            System.out.printf("User <[%s]> was NOT authenticated!\n", username);
+        }
+    }
+}
+----
+
+
+== Contributing
+
+You can involve yourself with our project by https://github.com/teragrep/repo-template/issues/new/choose[opening an issue] or submitting a pull request.
 
 Contribution requirements:
 
@@ -25,8 +79,8 @@ Contribution requirements:
 
 Read more in our https://github.com/teragrep/teragrep/blob/main/contributing.adoc[Contributing Guideline].
 
-### Contributor License Agreement
+=== Contributor License Agreement
 
-Contributors must sign https://github.com/teragrep/teragrep/blob/main/cla.adoc[Teragrep Contributor License Agreement] before a pull request is accepted to organization's repositories. 
+Contributors must sign https://github.com/teragrep/teragrep/blob/main/cla.adoc[Teragrep Contributor License Agreement] before a pull request is accepted to organization's repositories.
 
 You need to submit the CLA only once. After submitting the CLA you can contribute to all Teragrep's repositories. 
