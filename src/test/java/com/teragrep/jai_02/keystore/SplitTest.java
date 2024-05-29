@@ -45,6 +45,7 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import com.teragrep.jai_02.entry.Split;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

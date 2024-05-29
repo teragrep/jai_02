@@ -43,53 +43,61 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.entry;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import com.teragrep.jai_02.password.Salt;
+import com.teragrep.jai_02.password.SaltFactory;
+import com.teragrep.jai_02.user.UserNameImpl;
 
 /**
- * Map between the username and EntryAlias.
- * Loads existing aliases from the KeyStore on object initialization.
- * If there are multiple aliases for one username, the last one encountered takes priority.
+ * Provides a factory for building EntryAlias objects.
  */
-public class UserToAliasMapping {
-    private final Map<String, String> internalMap;
-    public UserToAliasMapping(KeyStore ks, Split split) {
-        this.internalMap = new HashMap<>();
+public class EntryAliasFactory {
+    private final SaltFactory saltFactory;
+    private final int iterationCount;
+    private final Split split;
 
-        // Initialize map with existing contents
-        final Enumeration<String> aliases;
-        try {
-            aliases = ks.aliases();
-        } catch (KeyStoreException e) {
-            throw new RuntimeException("KeyStore was not initialized, " +
-                    "cannot initialize userToAliasMapping!");
-        }
-
-        while (aliases.hasMoreElements()) {
-            final String alias = aliases.nextElement();
-            final EntryAlias k = new EntryAliasString(alias, split).toEntryAlias();
-            this.internalMap.put(k.userName().toString(), alias);
-        }
+    public EntryAliasFactory() {
+        this(new SaltFactory(), new Split(':'), 100_000);
     }
 
-    public void put(String username, String fullAlias) {
-        this.internalMap.put(username, fullAlias);
+    public EntryAliasFactory(int iterationCount) {
+        this(new SaltFactory(), new Split(':'), iterationCount);
     }
 
-    public String get(String username) {
-        return this.internalMap.get(username);
+    public EntryAliasFactory(SaltFactory saltFactory, Split split, int iterationCount) {
+        this.saltFactory = saltFactory;
+        this.split = split;
+        this.iterationCount = iterationCount;
     }
 
-    public boolean has(String username) {
-        return this.internalMap.containsKey(username);
+    public EntryAlias build(final String username) {
+        return new EntryAlias(
+                new UserNameImpl(username, split).asValid(),
+                saltFactory.createSalt(),
+                iterationCount,
+                split
+        );
     }
 
-    public void remove(String username) {
-        this.internalMap.remove(username);
+    public EntryAlias build(final String username, final Salt salt) {
+        return new EntryAlias(
+                new UserNameImpl(username, split).asValid(),
+                salt,
+                iterationCount,
+                split
+        );
+    }
+
+    public SaltFactory saltFactory() {
+        return this.saltFactory;
+    }
+
+    public int iterationCount() {
+        return this.iterationCount;
+    }
+
+    public Split split() {
+        return this.split;
     }
 }

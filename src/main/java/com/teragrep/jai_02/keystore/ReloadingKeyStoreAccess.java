@@ -48,6 +48,7 @@ package com.teragrep.jai_02.keystore;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.teragrep.jai_02.password.PasswordEntry;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

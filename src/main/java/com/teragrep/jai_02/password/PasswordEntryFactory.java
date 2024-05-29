@@ -43,9 +43,62 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
+package com.teragrep.jai_02.password;
 
-package com.teragrep.jai_02;
+import com.teragrep.jai_02.entry.EntryAlias;
+import com.teragrep.jai_02.entry.KeyAlgorithm;
 
-public interface ICredentialLookup {
-    String getCredential(String identity);
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+/**
+ * Builds a SecretKey for an EntryAlias using the
+ * given algorithm.
+ */
+public class PasswordEntryFactory {
+    private final EntryAlias entryAlias;
+    private final KeyAlgorithm keyAlgorithm;
+
+    public PasswordEntryFactory(final EntryAlias entryAlias) {
+        this(entryAlias, new KeyAlgorithm());
+    }
+
+    public PasswordEntryFactory(final EntryAlias entryAlias, final KeyAlgorithm keyAlgorithm) {
+        this.entryAlias = entryAlias;
+        this.keyAlgorithm = keyAlgorithm;
+    }
+
+    public PasswordEntry build(final char[] password)  {
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(password, entryAlias.salt().asBytes(), entryAlias.iterationCount(), 160);
+        final SecretKeyFactory secretKeyFactory;
+        try {
+            secretKeyFactory = SecretKeyFactory.getInstance(keyAlgorithm.get().toString());
+        } catch (NoSuchAlgorithmException e) {
+            // Should not happen as the algorithms are defined as known-good enums
+            throw new RuntimeException(e);
+        }
+
+        final SecretKey secretKey;
+        try {
+             secretKey = secretKeyFactory.generateSecret(pbeKeySpec);
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException("Given key specification was inappropriate for "
+                    + keyAlgorithm.get().toString() + " algorithm\n", e);
+        }
+
+        return new PasswordEntry(
+                entryAlias,
+                secretKey);
+    }
+
+    public KeyAlgorithm keyAlgorithm() {
+        return this.keyAlgorithm;
+    }
+
+    public EntryAlias asEntryAlias() {
+        return this.entryAlias;
+    }
 }

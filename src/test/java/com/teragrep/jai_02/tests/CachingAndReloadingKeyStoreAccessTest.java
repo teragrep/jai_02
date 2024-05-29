@@ -46,7 +46,13 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.keystore.*;
+import com.teragrep.jai_02.entry.EntryAlias;
+import com.teragrep.jai_02.entry.EntryAliasFactory;
+import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
+import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
+import com.teragrep.jai_02.keystore.KeyStoreFactory;
+import com.teragrep.jai_02.keystore.ReloadingKeyStoreAccess;
+import com.teragrep.jai_02.password.PasswordEntryFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

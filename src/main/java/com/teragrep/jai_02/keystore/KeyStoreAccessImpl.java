@@ -45,6 +45,12 @@
  */
 package com.teragrep.jai_02.keystore;
 
+import com.teragrep.jai_02.entry.EntryAliasFactory;
+import com.teragrep.jai_02.entry.EntryAliasString;
+import com.teragrep.jai_02.password.PasswordEntry;
+import com.teragrep.jai_02.password.PasswordEntryFactory;
+import com.teragrep.jai_02.user.UserToAliasMapping;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
@@ -53,7 +59,9 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Provides access to the KeyStore, such as loading, saving

@@ -45,6 +45,9 @@
  */
 package com.teragrep.jai_02.keystore;
 
+
+import com.teragrep.jai_02.password.PasswordEntry;
+
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;

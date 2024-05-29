@@ -43,39 +43,12 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
-
-import java.util.Objects;
+package com.teragrep.jai_02.user;
 
 /**
- * Validated UserName, not to contain the Split character.
+ * Interface used for the username.
+ * First part of the EntryAlias, followed by salt and iteration count.
  */
-public class UserNameValid implements UserName {
-
-    private final UserName username;
-
-    public UserNameValid(UserName username) {
-        this.username = username;
-    }
-
-    @Override
-    public String toString() {
-        return username.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        UserNameValid that = (UserNameValid) o;
-        return Objects.equals(username.toString(), that.username.toString());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(username);
-    }
-
+public interface UserName {
+    String toString();
 }

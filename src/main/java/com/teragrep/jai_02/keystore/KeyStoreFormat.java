@@ -1,4 +1,4 @@
-/*
+package com.teragrep.jai_02.keystore;/*
  * Java Authentication Info jai_02
  * Copyright (C) 2021  Suomen Kanuuna Oy
  *
@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
 
 /**
  * Defines the format used for the KeyStore.
