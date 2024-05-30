@@ -46,22 +46,21 @@
 
 package com.teragrep.jai_02.tests;
 
-import com.teragrep.jai_02.entry.EntryAlias;
 import com.teragrep.jai_02.entry.EntryAliasFactory;
-import com.teragrep.jai_02.keystore.CachingKeyStoreAccess;
-import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
-import com.teragrep.jai_02.keystore.KeyStoreFactory;
-import com.teragrep.jai_02.keystore.ReloadingKeyStoreAccess;
+import com.teragrep.jai_02.keystore.*;
+import com.teragrep.jai_02.password.PasswordEntry;
 import com.teragrep.jai_02.password.PasswordEntryFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javax.crypto.SecretKey;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.nio.file.*;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
 
 public class CachingAndReloadingKeyStoreAccessTest {
 
@@ -79,9 +78,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
                             new KeyStoreAccessImpl(
                                     new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
                                     keyStorePath, keyStorePassword.toCharArray()), 1L
-                    ), 10L);
-
-            cksa.deleteKey(userName);
+                    ), 1L);
         });
     }
 
@@ -125,19 +122,27 @@ public class CachingAndReloadingKeyStoreAccessTest {
     }
 
     @Test
-    public void externalModification_AddEntry_Test() {
-        Assertions.assertDoesNotThrow(() -> {
-            KeyStore externalStore = KeyStore.getInstance("PKCS12");
-            externalStore.load(Files.newInputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
-            EntryAlias ea = new EntryAliasFactory().build("new-alias");
-            SecretKey sk = new PasswordEntryFactory(ea).build("pass".toCharArray()).secretKey();
-            externalStore.setEntry(ea.toString(), new KeyStore.SecretKeyEntry(sk),
-                    new KeyStore.PasswordProtection(keyStorePassword.toCharArray()));
-            externalStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword.toCharArray());
-            Thread.sleep(2000); // Refreshes in 1 second, use 2s to avoid race condition
-            SecretKey same = cksa.loadKey("new-alias").secretKey();
-            Assertions.assertEquals(sk, same);
-        });
+    public void externalModification_AddEntry_Test() throws Exception {
+            Assertions.assertDoesNotThrow(() -> {
+                String user = "new-user";
+                char[] pass = "pass".toCharArray();
+                cksa.deleteKey(user);
+
+                CachingKeyStoreAccess cksa2 = new CachingKeyStoreAccess(
+                        new ReloadingKeyStoreAccess(
+                                new KeyStoreAccessImpl(
+                                        new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                        keyStorePath, keyStorePassword.toCharArray()), 1L
+                        ), 1L);
+
+                cksa2.saveKey(user, pass);
+
+                Thread.sleep(2000);
+
+                PasswordEntry ent1 = cksa.loadKey(user);
+                PasswordEntry ent2 = cksa2.loadKey(user);
+
+                Assertions.assertEquals(ent1.secretKey(), ent2.secretKey());
+            });
     }
 }
-

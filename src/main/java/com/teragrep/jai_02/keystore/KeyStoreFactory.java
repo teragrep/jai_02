@@ -44,7 +44,9 @@ package com.teragrep.jai_02.keystore;/*
  * a licensee so wish it.
  */
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -88,7 +90,9 @@ public class KeyStoreFactory {
             if (Files.notExists(pathToKeyStore, LinkOption.NOFOLLOW_LINKS)) {
                 ks.load(null, null);
             } else {
-                ks.load(Files.newInputStream(pathToKeyStore), pw);
+                InputStream inputStream = Files.newInputStream(pathToKeyStore);
+                ks.load(inputStream, pw);
+                inputStream.close();
             }
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {
