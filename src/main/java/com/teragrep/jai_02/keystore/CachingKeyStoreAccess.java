@@ -80,7 +80,7 @@ public class CachingKeyStoreAccess implements KeyStoreAccess {
             }
         };
 
-        this.loadingCache = CacheBuilder.newBuilder().refreshAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
+        this.loadingCache = CacheBuilder.newBuilder().expireAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
 
     }
 

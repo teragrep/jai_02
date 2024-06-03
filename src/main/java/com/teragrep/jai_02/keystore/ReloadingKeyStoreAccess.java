@@ -60,7 +60,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class ReloadingKeyStoreAccess implements KeyStoreAccess {
-    private KeyStoreAccess ksa;
+    private final KeyStoreAccess ksa;
     private final LoadingCache<Long, KeyStoreAccess> loadingCache;
     public ReloadingKeyStoreAccess(KeyStoreAccess ksa, long secs) {
         this.ksa = ksa;
@@ -78,7 +78,7 @@ public class ReloadingKeyStoreAccess implements KeyStoreAccess {
         this.loadingCache = CacheBuilder
                 .newBuilder()
                 .maximumSize(1L)
-                .refreshAfterWrite(secs, TimeUnit.SECONDS)
+                .expireAfterWrite(secs, TimeUnit.SECONDS)
                 .build(cacheLoader);
     }
 
