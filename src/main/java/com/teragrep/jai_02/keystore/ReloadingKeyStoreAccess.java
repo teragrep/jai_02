@@ -77,7 +77,7 @@ public class ReloadingKeyStoreAccess implements KeyStoreAccess {
         this.loadingCache = CacheBuilder
                 .newBuilder()
                 .maximumSize(1L)
-                .refreshAfterWrite(secs, TimeUnit.SECONDS)
+                .expireAfterWrite(secs, TimeUnit.SECONDS)
                 .build(cacheLoader);
     }
 
