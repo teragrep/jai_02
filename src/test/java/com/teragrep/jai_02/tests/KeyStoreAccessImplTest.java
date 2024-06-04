@@ -116,7 +116,7 @@ public class KeyStoreAccessImplTest {
     }
 
     @Test
-    public void externalModification_AddEntry_Test() {
+    public void externalModificationAddEntryTest() {
         // One keyStoreAccess reads the key and one saves it
         // Tests modification of the same keyStore from multiple sources
         Assertions.assertDoesNotThrow(() -> {
@@ -137,6 +137,7 @@ public class KeyStoreAccessImplTest {
             modifyingKeyStoreAccess.saveKey(user, pass);
 
             Thread.sleep(1500);
+            // Force keyStore file reload
             readingKeyStoreAccess = new KeyStoreAccessImpl(
                     new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
                     keyStorePath, keyStorePassword.toCharArray());

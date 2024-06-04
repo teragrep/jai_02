@@ -86,7 +86,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
     }
 
     @Test
-    public void externalModification_Delete_Test() {
+    public void externalModificationDeleteTest() {
         final CachingKeyStoreAccess readingKeyStoreAccess = new CachingKeyStoreAccess(
                 new ReloadingKeyStoreAccess(
                         new KeyStoreAccessImpl(
@@ -108,7 +108,7 @@ public class CachingAndReloadingKeyStoreAccessTest {
     }
 
     @Test
-    public void externalModification_AddEntry_Test() {
+    public void externalModificationAddEntryTest() {
         // One keyStoreAccess reads the key and one saves it
         // Tests modification of the same keyStore from multiple sources
             Assertions.assertDoesNotThrow(() -> {
