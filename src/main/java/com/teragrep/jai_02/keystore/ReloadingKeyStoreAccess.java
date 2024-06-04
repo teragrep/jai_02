@@ -56,8 +56,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class ReloadingKeyStoreAccess implements KeyStoreAccess {
     private final KeyStoreAccess ksa;
@@ -78,7 +77,7 @@ public class ReloadingKeyStoreAccess implements KeyStoreAccess {
         this.loadingCache = CacheBuilder
                 .newBuilder()
                 .maximumSize(1L)
-                .expireAfterWrite(secs, TimeUnit.SECONDS)
+                .refreshAfterWrite(secs, TimeUnit.SECONDS)
                 .build(cacheLoader);
     }
 

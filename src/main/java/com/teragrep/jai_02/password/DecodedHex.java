@@ -43,56 +43,26 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-package com.teragrep.jai_02.keystore;
+package com.teragrep.jai_02.password;
 
-import com.teragrep.jai_02.password.DecodedHex;
-import com.teragrep.jai_02.password.Salt;
-import com.teragrep.jai_02.password.SaltFactory;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import java.math.BigInteger;
 
-import java.util.Base64;
-
-public class SaltTest {
-
-    @Test
-    public void testSaltDefaultLength() {
-        SaltFactory saltFactory = new SaltFactory();
-        Salt salt = saltFactory.createSalt();
-        Assertions.assertEquals(20, salt.asBytes().length);
+public class DecodedHex {
+    private final String hexString;
+    public DecodedHex(String hexString) {
+        this.hexString = hexString;
     }
 
-    @Test
-    public void testSaltCustomLength() {
-        SaltFactory saltFactory = new SaltFactory(42);
-        Salt salt = saltFactory.createSalt();
-        Assertions.assertEquals(42, salt.asBytes().length);
-    }
-
-    @Test
-    public void testSaltHex() {
-        SaltFactory saltFactory = new SaltFactory();
-        Salt salt = saltFactory.createSalt();
-        byte[] saltDecoded = new DecodedHex(salt.toString()).decode();
-        Assertions.assertArrayEquals(salt.asBytes(), saltDecoded);
-    }
-
-    @Test
-    public void testSaltHexString() {
-        SaltFactory saltFactory = new SaltFactory();
-        Salt salt = saltFactory.createSalt();
-        String saltString = salt.toString();
-
-        Salt other = new Salt(new DecodedHex(saltString).decode());
-
-        Assertions.assertEquals(salt, other);
-    }
-
-    @Test
-    public void testSaltNotEqual() {
-        SaltFactory saltFactory = new SaltFactory();
-        Salt salt = saltFactory.createSalt();
-        Salt other = saltFactory.createSalt();
-        Assertions.assertNotEquals(salt, other);
+    public byte[] decode() {
+        byte[] byteArray = new BigInteger(hexString, 16)
+                .toByteArray();
+        if (byteArray[0] == 0) {
+            byte[] output = new byte[byteArray.length - 1];
+            System.arraycopy(
+                    byteArray, 1, output,
+                    0, output.length);
+            return output;
+        }
+        return byteArray;
     }
 }

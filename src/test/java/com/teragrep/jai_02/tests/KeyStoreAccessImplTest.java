@@ -48,9 +48,12 @@ package com.teragrep.jai_02.tests;
 
 import com.teragrep.jai_02.keystore.KeyStoreAccessImpl;
 import com.teragrep.jai_02.keystore.KeyStoreFactory;
+import com.teragrep.jai_02.password.PasswordEntry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.security.InvalidKeyException;
 
 public class KeyStoreAccessImplTest {
 
@@ -68,16 +71,13 @@ public class KeyStoreAccessImplTest {
         });
     }
 
-    public void save() {
+    @Test
+    public void saveAndVerifyTest() {
         Assertions.assertDoesNotThrow(() -> {
             ksa.saveKey(
                     userName,
                     userPassWord.toCharArray());
-        });
-    }
 
-    public void verify() {
-        Assertions.assertDoesNotThrow(() -> {
             boolean authOk = ksa.verifyKey(
                     userName,
                     userPassWord.toCharArray());
@@ -87,9 +87,67 @@ public class KeyStoreAccessImplTest {
     }
 
     @Test
-    public void saveAndVerifyTest() {
-        save();
-        verify();
+    public void aliasAlreadyExistsTest() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.saveKey(
+                    userName,
+                    userPassWord.toCharArray());
+        });
+
+        IllegalArgumentException saveKeyThrownException = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            ksa.saveKey(
+                    userName,
+                    userPassWord.toCharArray());
+        });
+
+        Assertions.assertEquals("Alias for username <[" + userName + "]> already exists in KeyStore!",
+                saveKeyThrownException.getMessage());
+    }
+
+    @Test
+    public void loadNonExistingEntryTest() {
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.deleteKey(userName);
+        });
+
+        Assertions.assertThrows(InvalidKeyException.class, () -> {
+            ksa.loadKey(userName);
+        }, "Username <[" + userName + "]> was not found in the map!");
+    }
+
+    @Test
+    public void externalModification_AddEntry_Test() {
+        // One keyStoreAccess reads the key and one saves it
+        // Tests modification of the same keyStore from multiple sources
+        Assertions.assertDoesNotThrow(() -> {
+            KeyStoreAccessImpl readingKeyStoreAccess = new KeyStoreAccessImpl(
+                                    new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                    keyStorePath, keyStorePassword.toCharArray());
+
+            String user = "new-user";
+            char[] pass = "pass".toCharArray();
+
+            // Delete user
+            readingKeyStoreAccess.deleteKey(user);
+
+            final KeyStoreAccessImpl modifyingKeyStoreAccess = new KeyStoreAccessImpl(
+                    new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                    keyStorePath, keyStorePassword.toCharArray());
+            // Save user from another keyStoreAccess object
+            modifyingKeyStoreAccess.saveKey(user, pass);
+
+            Thread.sleep(1500);
+            readingKeyStoreAccess = new KeyStoreAccessImpl(
+                    new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                    keyStorePath, keyStorePassword.toCharArray());
+
+            // Read user from initial keyStoreAccess object
+            // This will throw a InvalidKeyException if none found and
+            // test will fail
+            PasswordEntry ent1 = readingKeyStoreAccess.loadKey(user);
+            // Should be non-null always
+            Assertions.assertNotNull(ent1.secretKey());
+        });
     }
 }
 

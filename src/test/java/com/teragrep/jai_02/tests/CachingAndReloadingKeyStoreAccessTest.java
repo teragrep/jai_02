@@ -49,7 +49,6 @@ package com.teragrep.jai_02.tests;
 import com.teragrep.jai_02.keystore.*;
 import com.teragrep.jai_02.password.PasswordEntry;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.*;
@@ -62,30 +61,23 @@ public class CachingAndReloadingKeyStoreAccessTest {
     private static String userName = "trusted-12";
     private static String userPassWord = "XOsAqIhmKUTwWMjWwDaYmVgR8sl_l70H1oDPBw9z2yY";
 
-    private static CachingKeyStoreAccess cksa;
-    @BeforeAll
-    public static void prepare() {
-        Assertions.assertDoesNotThrow(() -> {
-            cksa = new CachingKeyStoreAccess(
-                    new ReloadingKeyStoreAccess(
-                            new KeyStoreAccessImpl(
-                                    new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                                    keyStorePath, keyStorePassword.toCharArray()), 0L
-                    ), 0L);
-        });
-    }
+    @Test
+    public void saveAndVerifyTest() {
+        final CachingKeyStoreAccess readingKeyStoreAccess = new CachingKeyStoreAccess(
+                new ReloadingKeyStoreAccess(
+                        new KeyStoreAccessImpl(
+                                new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                keyStorePath, keyStorePassword.toCharArray()), 1L
+                ), 1L);
 
-    public void save() {
         Assertions.assertDoesNotThrow(() -> {
-            cksa.saveKey(
+            readingKeyStoreAccess.saveKey(
                     userName,
                     userPassWord.toCharArray());
         });
-    }
 
-    public void verify() {
         Assertions.assertDoesNotThrow(() -> {
-            boolean authOk = cksa.verifyKey(
+            boolean authOk = readingKeyStoreAccess.verifyKey(
                     userName,
                     userPassWord.toCharArray());
 
@@ -94,43 +86,61 @@ public class CachingAndReloadingKeyStoreAccessTest {
     }
 
     @Test
-    public void saveAndVerifyTest() {
-        save();
-        verify();
-    }
-
-    @Test
     public void externalModification_Delete_Test() {
+        final CachingKeyStoreAccess readingKeyStoreAccess = new CachingKeyStoreAccess(
+                new ReloadingKeyStoreAccess(
+                        new KeyStoreAccessImpl(
+                                new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                keyStorePath, keyStorePassword.toCharArray()), 1L
+                ), 1L);
+
         Assertions.assertDoesNotThrow(() -> {
-            cksa.deleteKey(userName);
-            cksa.saveKey(userName, userPassWord.toCharArray());
+            readingKeyStoreAccess.deleteKey(userName);
+            readingKeyStoreAccess.saveKey(userName, userPassWord.toCharArray());
             Files.deleteIfExists(Paths.get(keyStorePath));
-            Thread.sleep(2000); // KeyStore refreshes every second
+            Thread.sleep(1500); // KeyStore refreshes every second
         });
 
         // key should not exist
         Assertions.assertThrows(InvalidKeyException.class, () -> {
-            cksa.loadKey(userName);
+            readingKeyStoreAccess.loadKey(userName);
         }, "Username <[" + userName + "]> was not found in the map!");
     }
 
     @Test
     public void externalModification_AddEntry_Test() {
+        // One keyStoreAccess reads the key and one saves it
+        // Tests modification of the same keyStore from multiple sources
             Assertions.assertDoesNotThrow(() -> {
-                String user = "new-user";
-                char[] pass = "pass".toCharArray();
-                cksa.deleteKey(user);
-
-                CachingKeyStoreAccess cksa2 = new CachingKeyStoreAccess(
+                final CachingKeyStoreAccess readingKeyStoreAccess = new CachingKeyStoreAccess(
                         new ReloadingKeyStoreAccess(
                                 new KeyStoreAccessImpl(
                                         new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
-                                        keyStorePath, keyStorePassword.toCharArray()), 0L
-                        ), 0L);
+                                        keyStorePath, keyStorePassword.toCharArray()), 1L
+                        ), 1L);
 
-                cksa2.saveKey(user, pass);
+                String user = "new-user";
+                char[] pass = "pass".toCharArray();
 
-                PasswordEntry ent1 = cksa.loadKey(user);
+                // Delete user
+                readingKeyStoreAccess.deleteKey(user);
+
+               final CachingKeyStoreAccess modifyingKeyStoreAccess = new CachingKeyStoreAccess(
+                        new ReloadingKeyStoreAccess(
+                                new KeyStoreAccessImpl(
+                                        new KeyStoreFactory(keyStorePath, keyStorePassword.toCharArray()).build(),
+                                        keyStorePath, keyStorePassword.toCharArray()), 1L
+                        ), 1L);
+               // Save user from another keyStoreAccess object
+                modifyingKeyStoreAccess.saveKey(user, pass);
+
+                Thread.sleep(1500);
+
+                // Read user from initial keyStoreAccess object
+                // This will throw a InvalidKeyException if none found and
+                // test will fail
+                PasswordEntry ent1 = readingKeyStoreAccess.loadKey(user);
+                // Should be non-null always
                 Assertions.assertNotNull(ent1.secretKey());
             });
     }
