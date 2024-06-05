@@ -54,6 +54,7 @@ import com.teragrep.jai_02.user.UserToAliasMapping;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
@@ -125,7 +126,9 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
         try {
             keyStore.setEntry(keyWithSecret.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.build(password).secretKey()),
                     new KeyStore.PasswordProtection(keyStorePassword));
-            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
+            OutputStream outputStream = Files.newOutputStream(Paths.get(keyStorePath));
+            keyStore.store(outputStream, keyStorePassword);
+            outputStream.close();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Invalid algorithm provided: ", e);
         } catch (CertificateException e) {
@@ -166,7 +169,9 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
 
         // commit changes to disk
         try {
-            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), keyStorePassword);
+            OutputStream outputStream = Files.newOutputStream(Paths.get(keyStorePath));
+            keyStore.store(outputStream, keyStorePassword);
+            outputStream.close();
         } catch (NoSuchAlgorithmException | CertificateException e) {
             throw new RuntimeException("Error storing keyStore after alias deletion: ", e);
         }

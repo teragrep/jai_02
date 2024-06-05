@@ -80,7 +80,10 @@ public class CachingKeyStoreAccess implements KeyStoreAccess {
             }
         };
 
-        this.loadingCache = CacheBuilder.newBuilder().refreshAfterWrite(secs, TimeUnit.SECONDS).build(cacheLoader);
+        this.loadingCache = CacheBuilder
+                .newBuilder()
+                .refreshAfterWrite(secs, TimeUnit.SECONDS)
+                .build(cacheLoader);
 
     }
 
@@ -101,6 +104,11 @@ public class CachingKeyStoreAccess implements KeyStoreAccess {
     }
 
     public int deleteKey(final String usernameToRemove) throws KeyStoreException, IOException {
+        loadingCache.asMap().forEach((k, v) -> {
+           if (k.username().equals(usernameToRemove)) {
+               loadingCache.invalidate(k);
+           }
+        });
         return keyStoreAccess.deleteKey(usernameToRemove);
     }
 

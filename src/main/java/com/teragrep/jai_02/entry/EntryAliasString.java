@@ -45,11 +45,10 @@
  */
 package com.teragrep.jai_02.entry;
 
+import com.teragrep.jai_02.password.DecodedHex;
 import com.teragrep.jai_02.password.Salt;
 import com.teragrep.jai_02.user.UserNameImpl;
 import com.teragrep.jai_02.user.UserNameValid;
-
-import java.util.Base64;
 
 /**
  * Provides facilities to generate an EntryAlias object from
@@ -73,7 +72,7 @@ public class EntryAliasString {
 
         String userName = fragments[0];
         UserNameValid userNameValid = new UserNameValid(new UserNameImpl(userName, split));
-        Salt salt = new Salt(Base64.getDecoder().decode(fragments[1]));
+        Salt salt = new Salt(new DecodedHex(fragments[1]).decode());
 
         int iterationCount;
         try {

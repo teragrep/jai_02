@@ -56,11 +56,10 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class ReloadingKeyStoreAccess implements KeyStoreAccess {
-    private KeyStoreAccess ksa;
+    private final KeyStoreAccess ksa;
     private final LoadingCache<Long, KeyStoreAccess> loadingCache;
     public ReloadingKeyStoreAccess(KeyStoreAccess ksa, long secs) {
         this.ksa = ksa;
