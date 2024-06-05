@@ -46,6 +46,7 @@
 package com.teragrep.jai_02.password;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
 public class DecodedHex {
     private final String hexString;
@@ -64,5 +65,9 @@ public class DecodedHex {
             return output;
         }
         return byteArray;
+    }
+
+    public String decodeString() {
+        return new String(decode(), StandardCharsets.US_ASCII);
     }
 }

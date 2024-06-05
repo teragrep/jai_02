@@ -47,41 +47,14 @@ package com.teragrep.jai_02.password;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
-/**
- * Defines the salt used for salting the SecretKey.
- */
-public class Salt {
-    private final byte[] salt;
-
-    public Salt(byte[] salt) {
-        this.salt = salt;
+public class EncodedHex {
+    private final String nonEncodedString;
+    public EncodedHex(String nonEncodedString) {
+        this.nonEncodedString = nonEncodedString;
     }
 
-    public byte[] asBytes() {
-        return salt;
+    public String encode() {
+        return String.format("%040x", new BigInteger(1, nonEncodedString.getBytes(StandardCharsets.US_ASCII)));
     }
-
-    @Override
-    public String toString() {
-        // Hex format
-        return String.format("%040x", new BigInteger(1, salt));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Salt other = (Salt) o;
-        return Arrays.equals(salt, other.asBytes());
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(salt);
-    }
-
 }

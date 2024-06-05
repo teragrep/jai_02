@@ -50,6 +50,8 @@ import com.teragrep.jai_02.password.Salt;
 import com.teragrep.jai_02.user.UserNameImpl;
 import com.teragrep.jai_02.user.UserNameValid;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Provides facilities to generate an EntryAlias object from
  * a compliant String.
