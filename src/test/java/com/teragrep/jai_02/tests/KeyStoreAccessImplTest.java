@@ -135,6 +135,12 @@ public class KeyStoreAccessImplTest {
         });
 
         Assertions.assertEquals("Username <[" + user1 + "]> was not found in the map!", ike.getMessage());
+
+        // Make sure that user0 can be loaded
+        Assertions.assertDoesNotThrow(() -> {
+            PasswordEntry pe = ksa.loadKey(user0);
+            Assertions.assertEquals(user0, pe.entryAlias().userName().toString());
+        });
     }
 
     @Test
