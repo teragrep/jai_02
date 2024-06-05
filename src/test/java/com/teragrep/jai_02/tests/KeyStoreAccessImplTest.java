@@ -110,9 +110,11 @@ public class KeyStoreAccessImplTest {
             ksa.deleteKey(userName);
         });
 
-        Assertions.assertThrows(InvalidKeyException.class, () -> {
+        InvalidKeyException ike = Assertions.assertThrows(InvalidKeyException.class, () -> {
             ksa.loadKey(userName);
-        }, "Username <[" + userName + "]> was not found in the map!");
+        }, "LoadKey with username <[" + userName + "]> did not fail as expected, key was found");
+
+        Assertions.assertEquals("Username <[" + userName + "]> was not found in the map!", ike.getMessage());
     }
 
     @Test
