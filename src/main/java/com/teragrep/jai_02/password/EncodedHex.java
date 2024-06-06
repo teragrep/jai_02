@@ -48,26 +48,13 @@ package com.teragrep.jai_02.password;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-public class DecodedHex {
-    private final String hexString;
-    public DecodedHex(String hexString) {
-        this.hexString = hexString;
+public class EncodedHex {
+    private final String nonEncodedString;
+    public EncodedHex(String nonEncodedString) {
+        this.nonEncodedString = nonEncodedString;
     }
 
-    public byte[] decode() {
-        byte[] byteArray = new BigInteger(hexString, 16)
-                .toByteArray();
-        if (byteArray[0] == 0) {
-            byte[] output = new byte[byteArray.length - 1];
-            System.arraycopy(
-                    byteArray, 1, output,
-                    0, output.length);
-            return output;
-        }
-        return byteArray;
-    }
-
-    public String decodeString() {
-        return new String(decode(), StandardCharsets.US_ASCII);
+    public String encode() {
+        return String.format("%040x", new BigInteger(1, nonEncodedString.getBytes(StandardCharsets.US_ASCII)));
     }
 }

@@ -48,6 +48,7 @@ package com.teragrep.jai_02.user;
 import com.teragrep.jai_02.entry.EntryAlias;
 import com.teragrep.jai_02.entry.EntryAliasString;
 import com.teragrep.jai_02.entry.Split;
+import com.teragrep.jai_02.password.DecodedHex;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -75,9 +76,10 @@ public class UserToAliasMapping {
         }
 
         while (aliases.hasMoreElements()) {
-            final String alias = aliases.nextElement();
-            final EntryAlias k = new EntryAliasString(alias, split).toEntryAlias();
-            this.internalMap.put(k.userName().toString(), alias);
+            final String originalAlias = aliases.nextElement();
+            final EntryAlias k = new EntryAliasString(originalAlias, split).toEntryAlias();
+
+            this.internalMap.put(new DecodedHex(k.userName().toString()).decodeString(), originalAlias);
         }
     }
 

@@ -118,6 +118,32 @@ public class KeyStoreAccessImplTest {
     }
 
     @Test
+    public void usernameCaseSensitivityTest() {
+        String user0 = "userNAME";
+        String user1 = "username";
+        // Make sure existing entries do not exist by deleting them
+        // Save user0 to KeyStore
+        Assertions.assertDoesNotThrow(() -> {
+            ksa.deleteKey(user0);
+            ksa.deleteKey(user1);
+            ksa.saveKey(user0, "password".toCharArray());
+        });
+
+        // Try loading user1 from KeyStore, should fail as they are in different cases
+        InvalidKeyException ike = Assertions.assertThrows(InvalidKeyException.class, () -> {
+            ksa.loadKey(user1);
+        });
+
+        Assertions.assertEquals("Username <[" + user1 + "]> was not found in the map!", ike.getMessage());
+
+        // Make sure that user0 can be loaded
+        Assertions.assertDoesNotThrow(() -> {
+            PasswordEntry pe = ksa.loadKey(user0);
+            Assertions.assertEquals(user0, pe.entryAlias().userName().toString());
+        });
+    }
+
+    @Test
     public void externalModificationAddEntryTest() {
         // One keyStoreAccess reads the key and one saves it
         // Tests modification of the same keyStore from multiple sources
