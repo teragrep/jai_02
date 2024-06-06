@@ -93,14 +93,15 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
         if (!userToAliasMapping.has(username)) {
             throw new InvalidKeyException("Username <[" + username + "]> was not found in the map!");
         }
+        // get encoded alias from map
         final String alias = userToAliasMapping.get(username);
 
         PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(
-                new EntryAliasString(new DecodedHex(alias).decodeString(), entryAliasFactory.split()).toEntryAlias());
+                new EntryAliasString(alias, entryAliasFactory.split()).toEntryAlias());
 
         final KeyStore.SecretKeyEntry ske;
         try {
-             ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(new EncodedHex(keyWithSecret.asEntryAlias().toString()).encode(),
+             ske = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyWithSecret.asEntryAlias().toString(),
                     new KeyStore.PasswordProtection(keyStorePassword));
         } catch (NoSuchAlgorithmException e) {
             // does not happen since algorithms are defined via enums
@@ -111,8 +112,9 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
             throw new InvalidKeyException("Could not find SecretKey in KeyStore for username <[" + username + "]>");
         }
 
+        // return with human readable username
         return new PasswordEntry(
-                keyWithSecret.asEntryAlias(),
+                entryAliasFactory.build(new DecodedHex(keyWithSecret.asEntryAlias().userName().toString()).decodeString(), keyWithSecret.asEntryAlias().salt()),
                 new SecretKeySpec(ske.getSecretKey().getEncoded(), keyWithSecret.keyAlgorithm().get().toString())
         );
     }
@@ -124,10 +126,10 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
             throw new IllegalArgumentException("Alias for username <[" + username + "]> already exists in KeyStore!");
         }
 
-        PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(entryAliasFactory.build(username));
-        String encodedEntryAlias = new EncodedHex(keyWithSecret.asEntryAlias().toString()).encode();
+        // Hex encoded username
+        PasswordEntryFactory keyWithSecret = new PasswordEntryFactory(entryAliasFactory.build(new EncodedHex(username).encode()));
         try {
-            keyStore.setEntry(encodedEntryAlias, new KeyStore.SecretKeyEntry(keyWithSecret.build(password).secretKey()),
+            keyStore.setEntry(keyWithSecret.asEntryAlias().toString(), new KeyStore.SecretKeyEntry(keyWithSecret.build(password).secretKey()),
                     new KeyStore.PasswordProtection(keyStorePassword));
             OutputStream outputStream = Files.newOutputStream(Paths.get(keyStorePath));
             keyStore.store(outputStream, keyStorePassword);
@@ -140,15 +142,15 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
             throw new RuntimeException("I/O error storing keyStore: ", e);
         }
 
-        // Put user->user:alias mapping and store keyStore in file
-        userToAliasMapping.put(keyWithSecret.asEntryAlias().userName().toString(), encodedEntryAlias);
+        // Put user(decoded)->user:alias(encoded) mapping and store keyStore in file
+        userToAliasMapping.put(username, keyWithSecret.asEntryAlias().toString());
     }
 
     public boolean verifyKey(final String username, final char[] password) throws
             UnrecoverableEntryException, KeyStoreException, InvalidKeyException {
         // Get stored SecretKey and compare to newly generated key with same salt
         final PasswordEntry storedKeyPair = loadKey(username);
-        final SecretKey newKey = new PasswordEntryFactory(entryAliasFactory.build(username, storedKeyPair.entryAlias().salt())).build(password).secretKey();
+        final SecretKey newKey = new PasswordEntryFactory(entryAliasFactory.build(new EncodedHex(username).encode(), storedKeyPair.entryAlias().salt())).build(password).secretKey();
         return storedKeyPair.secretKey().equals(newKey);
     }
 
@@ -156,12 +158,14 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
         final Enumeration<String> aliases = keyStore.aliases();
         final List<String> aliasesToRemove = new ArrayList<>();
         while (aliases.hasMoreElements()) {
+            // original alias will be with hex encoded username
             final String originalAlias = aliases.nextElement();
-            final String decodedAlias = new DecodedHex(originalAlias).decodeString();
-            final EntryAliasString entryAliasString = new EntryAliasString(decodedAlias, entryAliasFactory.split());
+            final EntryAliasString entryAliasString = new EntryAliasString(originalAlias, entryAliasFactory.split());
 
-            final String username = entryAliasString.toEntryAlias().userName().toString();
+            // decode alias to match plain text username
+            final String username = new DecodedHex(entryAliasString.toEntryAlias().userName().toString()).decodeString();
             if (username.equals(usernameToRemove)) {
+                // add original alias so right entry will be removed
                 aliasesToRemove.add(originalAlias);
             }
         }
@@ -190,10 +194,10 @@ public class KeyStoreAccessImpl implements KeyStoreAccess {
 
         final Enumeration<String> aliases = keyStore.aliases();
         while (aliases.hasMoreElements()) {
-            final String alias = new DecodedHex(aliases.nextElement()).decodeString();
+            final String alias = aliases.nextElement();
             final EntryAliasString entryAliasString = new EntryAliasString(alias, entryAliasFactory.split());
 
-            final String username = entryAliasString.toEntryAlias().userName().toString();
+            final String username = new DecodedHex(entryAliasString.toEntryAlias().userName().toString()).decodeString();
             if (username.equals(usernameToCheck)) {
                 exists = true;
                 break;

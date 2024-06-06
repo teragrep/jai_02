@@ -77,10 +77,9 @@ public class UserToAliasMapping {
 
         while (aliases.hasMoreElements()) {
             final String originalAlias = aliases.nextElement();
-            final String decodedAlias = new DecodedHex(originalAlias).decodeString();
+            final EntryAlias k = new EntryAliasString(originalAlias, split).toEntryAlias();
 
-            final EntryAlias k = new EntryAliasString(decodedAlias, split).toEntryAlias();
-            this.internalMap.put(k.userName().toString(), originalAlias);
+            this.internalMap.put(new DecodedHex(k.userName().toString()).decodeString(), originalAlias);
         }
     }
 
