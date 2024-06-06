@@ -46,7 +46,6 @@
 package com.teragrep.jai_02.password;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
